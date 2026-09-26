@@ -362,7 +362,7 @@ def main():
 
     # Generate Markdown report
     report_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "RESULTS.md"
+        os.path.dirname(os.path.abspath(__file__)), "RESULTS.md"
     )
     generate_markdown_report(all_results, report_path)
 
