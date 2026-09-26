@@ -15,6 +15,7 @@ where min_γ is the soft-minimum:
 import torch
 import torch.nn as nn
 import numpy as np
+from tslearn.metrics import SoftDTWLossPyTorch
 
 
 def _soft_min(a: torch.Tensor, gamma: float) -> torch.Tensor:
@@ -47,54 +48,27 @@ def pairwise_squared_euclidean(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor
 
 class SoftDTW(nn.Module):
     """
-    Differentiable Soft-DTW distance.
-    
-    Implements the forward pass using dynamic programming with the
-    soft-minimum operator, making it fully differentiable for 
-    gradient-based optimisation.
-    
-    Args:
-        gamma: Smoothing parameter (γ > 0). Default 1.0 as per paper.
+    Differentiable Soft-DTW distance using tslearn's fast implementation.
     """
 
     def __init__(self, gamma: float = 1.0):
         super().__init__()
         self.gamma = gamma
+        self.loss = SoftDTWLossPyTorch(gamma=gamma)
 
     def forward(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """
         Compute Soft-DTW distance between two time series.
-        
-        Args:
-            x: (T1, d) or (T1,) — query time series
-            y: (T2, d) or (T2,) — reference time series
-        
-        Returns:
-            Scalar soft-DTW distance.
         """
-        # Ensure 2D
         if x.dim() == 1:
             x = x.unsqueeze(-1)
         if y.dim() == 1:
             y = y.unsqueeze(-1)
 
-        T1, T2 = x.shape[0], y.shape[0]
-
-        # Cost matrix Δ(X,Y) = [δ(xᵢ, yⱼ)]  — squared Euclidean
-        cost = pairwise_squared_euclidean(x, y)  # (T1, T2)
-
-        # DP table with soft-min
-        # R[i,j] = cost[i,j] + soft_min(R[i-1,j-1], R[i-1,j], R[i,j-1])
-        INF = 1e9
-        R = torch.full((T1 + 1, T2 + 1), INF, device=x.device, dtype=x.dtype)
-        R[0, 0] = 0.0
-
-        for i in range(1, T1 + 1):
-            for j in range(1, T2 + 1):
-                neighbors = torch.stack([R[i - 1, j - 1], R[i - 1, j], R[i, j - 1]])
-                R[i, j] = cost[i - 1, j - 1] + _soft_min(neighbors, self.gamma)
-
-        return R[T1, T2]
+        # tslearn expects (batch_size, seq_len, features)
+        # Since we compare two series, we add a batch dimension of 1
+        d = self.loss(x.unsqueeze(0), y.unsqueeze(0))
+        return d.squeeze()
 
 
 class SoftDTWBatch(nn.Module):

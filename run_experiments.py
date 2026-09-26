@@ -131,8 +131,8 @@ def run_dataset(
         glacier = GlacierCFE(
             classifier=model,
             seq_len=T,
-            ae_epochs=50,
-            cfe_iterations=500,
+            ae_epochs=10,
+            cfe_iterations=100,
         )
         res_glacier = glacier.generate_batch(X_sample, y_sample, X_train, y_train, verbose=True)
         method_results["Glacier"] = res_glacier
@@ -143,7 +143,7 @@ def run_dataset(
             print("\n  [2/3] Glacier skipped (--no_glacier flag)")
 
     print("\n  [3/3] M-CELS Method")
-    mcels = MCELS(classifier=model, max_iterations=50)
+    mcels = MCELS(classifier=model, max_iterations=20)
     res_mcels = mcels.generate_batch(X_sample, y_sample, X_train, y_train, verbose=True)
     method_results["M-CELS"] = res_mcels
 

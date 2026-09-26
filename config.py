@@ -70,7 +70,7 @@ CFE_CONFIG = {
     "gamma": 1.0,          # γ: soft-DTW smoothing parameter
     "tau": 0.5,            # τ: hinge-loss threshold for validity
     "lr": 0.01,            # learning rate for Adam
-    "num_iterations": 500, # gradient descent iterations
+    "num_iterations": 100, # gradient descent iterations
 }
 
 # ── Evaluation hyperparameters (Section 5.1) ──────────────────────────────────
