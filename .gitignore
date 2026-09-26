@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Data (large downloaded datasets — use aeon to re-download)
+soft_dtw_cfe/data/datasets/
+
+# Saved models (optional — keep if small)
+# soft_dtw_cfe/models/saved/
+
+# Results (generated — keep RESULTS.md but not large JSON)
+soft_dtw_cfe/results/*.json
+
+# Logs / temp
+*.log
+*.tmp
+optuna.db
+
+# OS
+Thumbs.db
