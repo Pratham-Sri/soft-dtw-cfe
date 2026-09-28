@@ -169,6 +169,67 @@ def plot_loss_curves(losses: dict, dataset_name: str, method_name: str, save_nam
     plt.close(fig)
 
 
+def plot_paper_metrics(all_metrics: dict, dataset_name: str, save_name: str = None):
+    """
+    Paper-units comparison: targeted Val vs any-flip Val_any,
+    plus raw (unnormalized) L1_raw/L2_raw on log scale.
+
+    Args:
+        all_metrics: {method_name: {metric_name: value}}
+        dataset_name: For the figure title.
+        save_name: Output filename (auto-generated if None).
+    """
+    if not all_metrics:
+        return
+
+    methods = list(all_metrics.keys())
+    colors = ["#2c5f8a", "#e05c5c", "#5aa469", "#f0a500", "#9b59b6"]
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    fig.suptitle(f"Paper-units Metrics — {dataset_name}", fontsize=13, fontweight="bold")
+
+    # Panel 1: Val vs Val_any grouped bars
+    x = np.arange(2)
+    width = 0.8 / max(len(methods), 1)
+    ax = axes[0]
+    for i, (mname, color) in enumerate(zip(methods, colors)):
+        vals = [all_metrics[mname].get("Val", 0), all_metrics[mname].get("Val_any", 0)]
+        offset = (i - len(methods) / 2 + 0.5) * width
+        ax.bar(x + offset, vals, width * 0.9, label=mname, color=color, alpha=0.85, edgecolor="white")
+    ax.set_xticks(x)
+    ax.set_xticklabels(["Val ↑ (targeted)", "Val_any ↑ (any-flip)"])
+    ax.set_ylim(0, 1.05)
+    ax.set_ylabel("Fraction")
+    ax.legend(fontsize=8)
+    ax.grid(True, axis="y", alpha=0.3)
+    ax.set_title("Validity definitions", fontsize=11)
+
+    # Panel 2: raw distances, log scale (paper Table 2 units)
+    x2 = np.arange(2)
+    ax2 = axes[1]
+    for i, (mname, color) in enumerate(zip(methods, colors)):
+        vals = [max(all_metrics[mname].get("L1_raw", 0), 1e-9),
+                max(all_metrics[mname].get("L2_raw", 0), 1e-9)]
+        offset = (i - len(methods) / 2 + 0.5) * width
+        ax2.bar(x2 + offset, vals, width * 0.9, label=mname, color=color, alpha=0.85, edgecolor="white")
+    ax2.set_xticks(x2)
+    ax2.set_xticklabels(["L1_raw ↓", "L2_raw ↓"])
+    ax2.set_yscale("log")
+    ax2.set_ylabel("Raw distance (log)")
+    ax2.legend(fontsize=8)
+    ax2.grid(True, which="both", alpha=0.3)
+    ax2.set_title("Paper Table-2 units", fontsize=11)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+
+    if save_name is None:
+        save_name = f"{dataset_name}_paper_metrics"
+    path = os.path.join(FIGURES_DIR, f"{save_name}.png")
+    plt.savefig(path, dpi=150, bbox_inches="tight")
+    print(f"  [VIS] Saved paper metrics figure -> {path}")
+    plt.close(fig)
+
+
 def plot_metrics_comparison(all_metrics: dict, dataset_name: str, save_name: str = None):
     """
     Bar chart comparing all methods across all metrics.

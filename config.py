@@ -14,11 +14,12 @@ import os
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # ── Paths ────────────────────────────────────────────────────────────────────
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(PROJECT_ROOT, "soft_dtw_cfe", "data", "datasets")
-RESULTS_DIR = os.path.join(PROJECT_ROOT, "soft_dtw_cfe", "results")
-MODELS_DIR = os.path.join(PROJECT_ROOT, "soft_dtw_cfe", "models", "saved")
-FIGURES_DIR = os.path.join(PROJECT_ROOT, "soft_dtw_cfe", "visualization", "figures")
+# Repo root is this file's directory (flat layout, not nested package).
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(PROJECT_ROOT, "data", "datasets")
+RESULTS_DIR = os.path.join(PROJECT_ROOT, "results")
+MODELS_DIR = os.path.join(PROJECT_ROOT, "models", "saved")
+FIGURES_DIR = os.path.join(PROJECT_ROOT, "visualization", "figures")
 
 for d in [DATA_DIR, RESULTS_DIR, MODELS_DIR, FIGURES_DIR]:
     os.makedirs(d, exist_ok=True)
@@ -71,6 +72,23 @@ CFE_CONFIG = {
     "tau": 0.5,            # τ: hinge-loss threshold for validity
     "lr": 0.01,            # learning rate for Adam
     "num_iterations": 100, # gradient descent iterations
+}
+
+# ── DTW-guided constrained deformation hyperparameters (novelty) ──────────
+DTWCFE_CONFIG = {
+    "M_a": 4,             # amplitude RBF count
+    "M_t": 4,             # temporal RBF count
+    "K": 3,               # prototypes per query
+    "lambda_": 1.0,       # validity weight vs proximity
+    "lambda_r": 1e-3,     # ||theta||^2 regularizer
+    "m0": 0.0,            # desired logit margin (0 = just cross boundary)
+    "sigma0": 0.5,        # CMA-ES initial step
+    "maxfevals": None,    # None -> 100*D in optimizer
+    "popsize": None,      # None -> cma default 4+3log(D)
+    "seed": 0,
+    "window": None,       # None = full DTW; auto-banded for T>500 in generator
+    "width_factor": 1.0,  # RBF overlap
+    "eps": 1e-3,          # velocity floor
 }
 
 # ── Evaluation hyperparameters (Section 5.1) ──────────────────────────────────

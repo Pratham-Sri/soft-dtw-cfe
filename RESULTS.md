@@ -3,150 +3,146 @@
 > **Paper**: *Towards plausibility in time series counterfactual explanations*  
 > Kostrzewa, Galus, Zięba (2026) — [arXiv:2603.08349](https://arxiv.org/abs/2603.08349)
 
----
-
-## What We Are Trying to Do 🎯
-
-**The Problem**: Time Series Classification (TSC) models (like Deep Neural Networks) are powerful but act as "black boxes." If a model predicts that an ECG reading is "Abnormal", a doctor might ask: *"What would need to change in this signal for it to be classified as Normal?"* 
-
-This is called a **Counterfactual Explanation (CFE)**. It finds the minimal changes required to flip the classifier's decision. However, traditional CFE methods often just add random noise or create spiky, unnatural time series. While these mathematically "trick" the classifier, they are completely useless to a human expert because they don't look like real data.
-
-**The Solution**: We implemented a novel Counterfactual Generator that enforces **plausibility**. Instead of just minimizing the raw distance (L1/L2) between the original and the counterfactual, our method uses **Soft-DTW (Differentiable Dynamic Time Warping)** to pull the counterfactual towards actual, real-world examples of the target class. 
-
----
-
-## What We Achieved 🚀
-
-By running the full experimental pipeline, we successfully demonstrated that:
-1. **Higher Plausibility**: Our Soft-DTW method consistently achieves significantly lower (better) DTW distances to the target class compared to baselines like Glacier and M-CELS. This means our counterfactuals actually look like the target class.
-2. **High Inlier Scores**: Evaluated by an independent Isolation Forest, our CFEs are almost always classified as "in-distribution" (IsoForest = 1.000), whereas baseline methods frequently generate out-of-distribution anomalies.
-3. **Multivariate Support**: Unlike the Glacier baseline which is restricted to univariate data, our method successfully generated CFEs for complex multivariate datasets (like `Cricket` and `Epilepsy`).
-
----
-
 ## Evaluation Metrics
 
 | Metric | Symbol | Direction | Description |
 |--------|--------|-----------|-------------|
-| Validity | Val | ⬆️ Higher is better | Fraction of CFEs that successfully flip the classifier |
-| Sparsity | L1 | ⬇️ Lower is better | Normalised L1 distance to original |
-| Proximity | L2 | ⬇️ Lower is better | Normalised L2 distance to original |
-| DTW Plausibility | DTW | ⬇️ Lower is better | Avg DTW to 10 actual target-class neighbours |
-| Isolation Forest | IsoForest | ⬆️ Higher is better | Fraction classified as real/nominal by Isolation Forest |
+| Validity | Val | up higher is better | Fraction of CFEs that flip the classifier |
+| Sparsity | L1 | down lower is better | Normalised L1 distance to original |
+| Proximity | L2 | down lower is better | Normalised L2 distance to original |
+| DTW Plausibility | DTW | down lower is better | Avg DTW to 10 target-class neighbours |
+| Isolation Forest | IsoForest | up higher is better | Fraction classified as nominal by IF |
+
+---
+
+## Results per Dataset
+
+### ItalyPowerDemand
+
+- **Classifier Accuracy**: 96.21%
+- **Train / Test samples used**: 67 / 20
+- **Series**: T=24, d=1, C=2
+- **Elapsed**: 36.1s
+
+| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) | Time(s) | s/sample |
+|--------|----------|-----------|-----------|------------|----------------|---------|----------|
+| Ours | 1.000 | 0.2599 | 0.1193 | 1.0069 | 0.800 | 9.7 | 0.49 |
+| M-CELS | 1.000 | 0.1884 | 0.1265 | 1.9500 | 0.800 | 0.0 | 0.00 |
+| DTW-CFE | 1.000 | 0.1938 | 0.0775 | 1.9296 | 0.750 | 22.8 | 1.14 |
+
+
+### GunPoint
+
+- **Classifier Accuracy**: 98.67%
+- **Train / Test samples used**: 50 / 20
+- **Series**: T=150, d=1, C=2
+- **Elapsed**: 65.1s
+
+| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) | Time(s) | s/sample |
+|--------|----------|-----------|-----------|------------|----------------|---------|----------|
+| Ours | 1.000 | 0.1789 | 0.0588 | 2.9727 | 1.000 | 33.3 | 1.66 |
+| M-CELS | 1.000 | 0.1246 | 0.0700 | 5.1570 | 0.950 | 0.0 | 0.00 |
+| DTW-CFE | 1.000 | 0.1221 | 0.0323 | 5.8324 | 0.900 | 21.8 | 1.09 |
+
+
+### Coffee
+
+- **Classifier Accuracy**: 53.57%
+- **Train / Test samples used**: 28 / 20
+- **Series**: T=286, d=1, C=2
+- **Elapsed**: 142.1s
+
+| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) | Time(s) | s/sample |
+|--------|----------|-----------|-----------|------------|----------------|---------|----------|
+| Ours | 0.250 | 0.0895 | 0.0156 | 0.9609 | 1.000 | 107.8 | 5.39 |
+| M-CELS | 0.250 | 0.0715 | 0.0118 | 0.8818 | 0.850 | 0.1 | 0.01 |
+| DTW-CFE | 0.250 | 0.0215 | 0.0033 | 1.6118 | 0.450 | 5.9 | 0.30 |
+
+
+### Earthquakes
+
+- **Classifier Accuracy**: 74.82%
+- **Train / Test samples used**: 322 / 20
+- **Series**: T=512, d=1, C=2
+- **Elapsed**: 441.1s
+
+| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) | Time(s) | s/sample |
+|--------|----------|-----------|-----------|------------|----------------|---------|----------|
+| Ours | 0.150 | 0.2016 | 0.1163 | 144.6361 | 1.000 | 349.5 | 17.47 |
+| M-CELS | 0.200 | 0.7407 | 1.6255 | 129.9494 | 1.000 | 0.2 | 0.01 |
+| DTW-CFE | 0.150 | 0.1053 | 0.1608 | 213.6523 | 0.850 | 5.5 | 0.28 |
+
+
+### CBF
+
+- **Classifier Accuracy**: 43.89%
+- **Train / Test samples used**: 30 / 20
+- **Series**: T=128, d=1, C=3
+- **Elapsed**: 245.0s
+
+| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) | Time(s) | s/sample |
+|--------|----------|-----------|-----------|------------|----------------|---------|----------|
+| Ours | 1.000 | 0.4846 | 0.3192 | 18.6373 | 1.000 | 28.0 | 1.40 |
+| M-CELS | 0.850 | 0.3338 | 0.3777 | 29.6497 | 0.650 | 0.1 | 0.00 |
+| DTW-CFE | 0.650 | 0.4372 | 0.3405 | 29.0361 | 0.850 | 21.3 | 1.06 |
+
+
+### TwoLeadECG
+
+- **Classifier Accuracy**: 88.50%
+- **Train / Test samples used**: 23 / 20
+- **Series**: T=82, d=1, C=2
+- **Elapsed**: 199.8s
+
+| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) | Time(s) | s/sample |
+|--------|----------|-----------|-----------|------------|----------------|---------|----------|
+| Ours | 0.750 | 0.1597 | 0.0427 | 1.6324 | 1.000 | 15.0 | 0.75 |
+| M-CELS | 0.850 | 0.1102 | 0.0365 | 3.0265 | 0.950 | 0.1 | 0.00 |
+| DTW-CFE | 1.000 | 0.1402 | 0.0340 | 2.3496 | 0.900 | 20.9 | 1.04 |
+
+
+### Epilepsy
+
+- **Classifier Accuracy**: 97.83%
+- **Train / Test samples used**: 137 / 20
+- **Series**: T=206, d=3, C=4
+- **Elapsed**: 227.2s
+
+| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) | Time(s) | s/sample |
+|--------|----------|-----------|-----------|------------|----------------|---------|----------|
+| Ours | 0.300 | 0.4782 | 0.3084 | 266.2740 | 1.000 | 65.6 | 3.28 |
+| M-CELS | 1.000 | 0.4404 | 0.5822 | 424.4845 | 1.000 | 0.0 | 0.00 |
+| DTW-CFE | 1.000 | 0.5513 | 0.6145 | 343.1891 | 1.000 | 24.0 | 1.20 |
+
+
+### Cricket
+
+- **Classifier Accuracy**: 100.00%
+- **Train / Test samples used**: 108 / 20
+- **Series**: T=1197, d=6, C=12
+- **Elapsed**: 2885.4s
+
+| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) | Time(s) | s/sample |
+|--------|----------|-----------|-----------|------------|----------------|---------|----------|
+| Ours | 0.500 | 0.4455 | 0.2932 | 2362.4284 | 0.700 | 1822.4 | 91.12 |
+| M-CELS | 1.000 | 0.5789 | 1.0161 | 3308.6161 | 0.650 | 0.1 | 0.00 |
+| DTW-CFE | 1.000 | 0.5061 | 0.6126 | 3956.1409 | 0.550 | 41.0 | 2.05 |
+
 
 ---
 
 ## Summary: Ours vs Baselines
 
-*Notice how **Ours DTW** is vastly lower than Glacier and M-CELS across almost all datasets, proving our CFEs are much closer to real data.*
-
-| Dataset | Acc% | Ours Val | Glacier Val | M-CELS Val | Ours DTW | Glacier DTW | M-CELS DTW |
-|---------|------|----------|-------------|------------|----------|-------------|------------|
-| CBF | 64.1 | 0.800 | 0.800 | 1.000 | **17.7888** | 106.2799 | 23.4449 |
-| TwoLeadECG | 78.6 | 0.600 | 0.400 | 0.400 | **1.7440** | 59.2018 | 3.4042 |
-| GunPoint | 96.0 | 0.800 | 0.400 | 0.800 | **2.0436** | 128.6955 | 4.5333 |
-| Earthquakes | 74.8 | 0.200 | 0.200 | 0.200 | **124.9068** | 461.5429 | 147.8034 |
-| Coffee | 53.6 | 0.000 | 0.000 | 0.000 | 1.0254 | 274.2354 | **0.6202** |
-| ItalyPowerDemand | 97.1 | 1.000 | 0.000 | 0.600 | **1.2282** | 15.2532 | 2.8175 |
-| Cricket | 98.6 | 1.000 | N/A | 1.000 | **1821.5365** | N/A | 3609.5182 |
-| Epilepsy | 97.8 | 0.000 | N/A | 1.000 | **391.7884** | N/A | 562.8411 |
-
----
-
-## Detailed Results per Dataset
-
-### CBF
-- **Classifier Accuracy**: 64.11%
-- **Train / Test samples used**: 30 / 5
-- **Series**: T=128, d=1, C=3
-
-| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) |
-|--------|----------|-----------|-----------|------------|----------------|
-| Ours | 0.800 | 0.5055 | 0.3400 | 17.7888 | 1.000 |
-| Glacier | 0.800 | 0.7755 | 0.8787 | 106.2799 | 0.200 |
-| M-CELS | 1.000 | 0.4533 | 0.5392 | 23.4449 | 0.600 |
-
-
-### TwoLeadECG
-- **Classifier Accuracy**: 78.58%
-- **Train / Test samples used**: 23 / 5
-- **Series**: T=82, d=1, C=2
-
-| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) |
-|--------|----------|-----------|-----------|------------|----------------|
-| Ours | 0.600 | 0.1791 | 0.0459 | 1.7440 | 1.000 |
-| Glacier | 0.400 | 0.6324 | 0.7806 | 59.2018 | 0.600 |
-| M-CELS | 0.400 | 0.1784 | 0.0598 | 3.4042 | 1.000 |
-
-
-### GunPoint
-- **Classifier Accuracy**: 96.00%
-- **Train / Test samples used**: 50 / 5
-- **Series**: T=150, d=1, C=2
-
-| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) |
-|--------|----------|-----------|-----------|------------|----------------|
-| Ours | 0.800 | 0.2611 | 0.1252 | 2.0436 | 1.000 |
-| Glacier | 0.400 | 0.7504 | 0.8691 | 128.6955 | 0.000 |
-| M-CELS | 0.800 | 0.1871 | 0.1242 | 4.5333 | 0.800 |
-
-
-### Earthquakes
-- **Classifier Accuracy**: 74.82%
-- **Train / Test samples used**: 322 / 5
-- **Series**: T=512, d=1, C=2
-
-| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) |
-|--------|----------|-----------|-----------|------------|----------------|
-| Ours | 0.200 | 0.1906 | 0.1109 | 124.9068 | 1.000 |
-| Glacier | 0.200 | 0.6599 | 0.8528 | 461.5429 | 1.000 |
-| M-CELS | 0.200 | 0.7371 | 1.5814 | 147.8034 | 0.800 |
-
-
-### Coffee
-- **Classifier Accuracy**: 53.57%
-- **Train / Test samples used**: 28 / 5
-- **Series**: T=286, d=1, C=2
-
-| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) |
-|--------|----------|-----------|-----------|------------|----------------|
-| Ours | 0.000 | 0.0803 | 0.0110 | 1.0254 | 1.000 |
-| Glacier | 0.000 | 0.7360 | 1.0307 | 274.2354 | 0.000 |
-| M-CELS | 0.000 | 0.0831 | 0.0122 | 0.6202 | 1.000 |
-
-
-### ItalyPowerDemand
-- **Classifier Accuracy**: 97.08%
-- **Train / Test samples used**: 67 / 5
-- **Series**: T=24, d=1, C=2
-
-| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) |
-|--------|----------|-----------|-----------|------------|----------------|
-| Ours | 1.000 | 0.2796 | 0.1208 | 1.2282 | 0.600 |
-| Glacier | 0.000 | 0.7915 | 0.8906 | 15.2532 | 0.000 |
-| M-CELS | 0.600 | 0.1436 | 0.0709 | 2.8175 | 0.600 |
-
-
-### Cricket
-- **Classifier Accuracy**: 98.61%
-- **Train / Test samples used**: 108 / 5
-- **Series**: T=1197, d=6, C=12
-
-| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) |
-|--------|----------|-----------|-----------|------------|----------------|
-| Ours | 1.000 | 0.3729 | 0.2247 | 1821.5365 | 1.000 |
-| M-CELS | 1.000 | 0.2406 | 0.3414 | 3609.5182 | 0.200 |
-
-
-### Epilepsy
-- **Classifier Accuracy**: 97.83%
-- **Train / Test samples used**: 137 / 5
-- **Series**: T=206, d=3, C=4
-
-| Method | Val (up) | L1 (down) | L2 (down) | DTW (down) | IsoForest (up) |
-|--------|----------|-----------|-----------|------------|----------------|
-| Ours | 0.000 | 0.5373 | 0.3716 | 391.7884 | 1.000 |
-| M-CELS | 1.000 | 0.5588 | 0.8593 | 562.8411 | 1.000 |
+| Dataset | Acc% | Ours Val | M-CELS Val | DTW-CFE Val | Ours DTW | M-CELS DTW | DTW-CFE DTW | Ours s/samp | DTW-CFE s/samp |
+|---------|------|----------|------------|-------------|----------|------------|-------------|-------------|----------------|
+| ItalyPowerDemand | 96.2 | 1.000 | 1.000 | 1.000 | 1.0069 | 1.9500 | 1.9296 | 0.49 | 1.14 |
+| GunPoint | 98.7 | 1.000 | 1.000 | 1.000 | 2.9727 | 5.1570 | 5.8324 | 1.66 | 1.09 |
+| Coffee | 53.6 | 0.250 | 0.250 | 0.250 | 0.9609 | 0.8818 | 1.6118 | 5.39 | 0.30 |
+| Earthquakes | 74.8 | 0.150 | 0.200 | 0.150 | 144.6361 | 129.9494 | 213.6523 | 17.47 | 0.28 |
+| CBF | 43.9 | 1.000 | 0.850 | 0.650 | 18.6373 | 29.6497 | 29.0361 | 1.40 | 1.06 |
+| TwoLeadECG | 88.5 | 0.750 | 0.850 | 1.000 | 1.6324 | 3.0265 | 2.3496 | 0.75 | 1.04 |
+| Epilepsy | 97.8 | 0.300 | 1.000 | 1.000 | 266.2740 | 424.4845 | 343.1891 | 3.28 | 1.20 |
+| Cricket | 100.0 | 0.500 | 1.000 | 1.000 | 2362.4284 | 3308.6161 | 3956.1409 | 91.12 | 2.05 |
 
 ---
 *Generated automatically by `soft_dtw_cfe/run_experiments.py`*

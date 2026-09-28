@@ -5,3 +5,7 @@ scikit-learn
 optuna
 aeon>=1.0.0
 tqdm
+tslearn
+scipy
+cma
+numba

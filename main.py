@@ -3,6 +3,15 @@ import sys
 import torch
 import numpy as np
 
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+if _THIS_DIR not in sys.path:
+    sys.path.insert(0, _THIS_DIR)
+import types as _types
+if "soft_dtw_cfe" not in sys.modules:
+    _pkg = _types.ModuleType("soft_dtw_cfe")
+    _pkg.__path__ = [_THIS_DIR]
+    sys.modules["soft_dtw_cfe"] = _pkg
+
 from soft_dtw_cfe.config import ALL_DATASETS, DEVICE
 from soft_dtw_cfe.data.dataset_loader import load_dataset, get_dataloaders
 from soft_dtw_cfe.models.classifier import TSClassifier, train_classifier, save_classifier, load_classifier, evaluate_classifier

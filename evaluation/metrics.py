@@ -19,7 +19,7 @@ def compute_validity(results: list) -> float:
     """
     Validity (Val ↑): Fraction of counterfactuals that successfully
     flip the classifier's prediction to the target class.
-    
+
     Args:
         results: List of result dicts from CFE generators.
     """
@@ -28,34 +28,51 @@ def compute_validity(results: list) -> float:
     valid_count = sum(1 for r in results if r["valid"])
     return valid_count / len(results)
 
+def compute_validity_any(results: list) -> float:
+    """
+    Any-flip validity (paper Eq.4): fraction where predicted class
+    differs from original class, regardless of target.
+    """
+    if not results:
+        return 0.0
+    n = sum(1 for r in results
+            if r.get("predicted_class") != r.get("original_class"))
+    return n / len(results)
+
 def compute_proximity_sparsity(results: list):
     """
-    Proximity (L2 ↓) and Sparsity (L1 ↓).
-    
+    Proximity (L2 ↓) and Sparsity (L1 ↓), normalized by dT,
+    plus paper-Table-2 raw (unnormalized) variants L1_raw/L2_raw.
+
     Args:
         results: List of result dicts.
-    
+
     Returns:
-        mean_l1, mean_l2
+        mean_l1, mean_l2, mean_l1_raw, mean_l2_raw
     """
     l1_distances = []
     l2_distances = []
-    
+    l1_raw = []
+    l2_raw = []
+
     for r in results:
         # Tensors to numpy, shape (d, T)
         x = r["original"].numpy()
         x_cf = r["counterfactual"].numpy()
-        
+
         # d*T
         size = x.size
-        
-        l1 = np.sum(np.abs(x_cf - x)) / size
-        l2 = np.sum((x_cf - x)**2) / size
-        
-        l1_distances.append(l1)
-        l2_distances.append(l2)
-        
-    return np.mean(l1_distances), np.mean(l2_distances)
+
+        l1r = float(np.sum(np.abs(x_cf - x)))
+        l2r = float(np.sum((x_cf - x)**2))
+
+        l1_distances.append(l1r / size)
+        l2_distances.append(l2r / size)
+        l1_raw.append(l1r)
+        l2_raw.append(l2r)
+
+    return (float(np.mean(l1_distances)), float(np.mean(l2_distances)),
+            float(np.mean(l1_raw)), float(np.mean(l2_raw)))
 
 def compute_plausibility_dtw(results: list, X_train: np.ndarray, y_train: np.ndarray, k: int = None) -> float:
     """
@@ -162,14 +179,18 @@ def evaluate_all_metrics(results: list, X_train: np.ndarray, y_train: np.ndarray
         return {}
         
     val = compute_validity(results)
-    l1, l2 = compute_proximity_sparsity(results)
+    val_any = compute_validity_any(results)
+    l1, l2, l1_raw, l2_raw = compute_proximity_sparsity(results)
     dtw = compute_plausibility_dtw(results, X_train, y_train)
     iso = compute_isolation_forest_score(results, X_train, y_train)
-    
+
     return {
         "Val": val,
+        "Val_any": val_any,
         "L1": l1,
         "L2": l2,
+        "L1_raw": l1_raw,
+        "L2_raw": l2_raw,
         "DTW": dtw,
         "IsoForest": iso
     }
