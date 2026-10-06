@@ -587,15 +587,29 @@ def main():
                 "method_elapsed": {}, "elapsed": 0.0, "error": str(e),
             })
 
-    # Save JSON
+    # Save JSON (merging with existing datasets if present)
     json_path = os.path.join(RESULTS_DIR, "sparce_results.json")
-    with open(json_path, "w") as f:
-        json.dump(all_results, f, indent=2, default=str)
-    print(f"\n[SAVE] JSON results saved to {json_path}")
+    merged_dict = {}
+    if os.path.exists(json_path):
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                prev_data = json.load(f)
+                for item in prev_data:
+                    if isinstance(item, dict) and "dataset" in item:
+                        merged_dict[item["dataset"]] = item
+        except Exception:
+            pass
+    for item in all_results:
+        merged_dict[item["dataset"]] = item
+    merged_results = list(merged_dict.values())
 
-    # Generate report
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(merged_results, f, indent=2, default=str)
+    print(f"\n[SAVE] JSON results ({len(merged_results)} datasets) saved to {json_path}")
+
+    # Generate report with all accumulated results
     report_path = os.path.join(_THIS_DIR, "RESULTS_SPARCE.md")
-    generate_sparce_report(all_results, report_path)
+    generate_sparce_report(merged_results, report_path)
 
     print("\n" + "=" * 70)
     print("  SPARCE experiments complete!")

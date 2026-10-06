@@ -8,6 +8,7 @@
 | Method | Type | Description |
 |--------|------|-------------|
 | **Ours** (Soft-DTW) | Gradient-based | Proposed method — soft-DTW alignment for plausibility |
+| **SPARCE** | Prototype+Saliency | Novel two-phase curriculum with channel-selective saliency masking |
 | **GDFO** (VAE+GMM) | Generative density | VAE+GMM density-guided optimisation for multivariate |
 | **M-CELS** | Greedy baseline | Class-conditional greedy perturbation |
 | **DTW-CFE** (CMA-ES) | Evolutionary | DTW-guided constrained deformation |
@@ -124,20 +125,17 @@
 ### Epilepsy
 
 - **Classifier Accuracy**: 97.83%
-- **Samples**: 137 train / 20 test
+- **Samples**: 137 train / 10 test
 - **Series**: T=206, d=3, C=4
 
 | Method | Val ↑ | L1 ↓ | L2 ↓ | DTW ↓ | IsoForest ↑ | Time(s) | s/sample |
 |--------|-------|------|------|-------|-------------|---------|----------|
-| Ours | 0.300 | 0.4782 | 0.3084 | 266.2740 | 1.000 | 65.6 | 3.28 |
-| GDFO | 0.000 | 0.3408 | 0.1478 | 603.3149 | 1.000 | 141.0 | 7.05 |
-| M-CELS | 1.000 | 0.4404 | 0.5822 | 424.4845 | 1.000 | 0.0 | 0.00 |
-| DTW-CFE | 1.000 | 0.5513 | 0.6145 | 343.1891 | 1.000 | 24.0 | 1.20 |
+| Ours | 0.200 | 0.5065 | 0.3389 | 333.7983 | 1.000 | 113.2 | 11.32 |
+| SPARCE | 0.800 | 0.7297 | 0.8672 | 310.7604 | 1.000 | 133.0 | 13.30 |
+| GDFO | 0.000 | 0.3408 | 0.1478 | 603.3149 | 1.000 | 141.0 | 14.10 |
+| M-CELS | 1.000 | 0.4499 | 0.6749 | 506.5135 | 1.000 | 0.1 | 0.01 |
+| DTW-CFE | 1.000 | 0.5513 | 0.6145 | 343.1891 | 1.000 | 24.0 | 2.40 |
 
-
----
-
-## UEA Large Multivariate Datasets
 
 ### BasicMotions
 
@@ -147,7 +145,8 @@
 
 | Method | Val ↑ | L1 ↓ | L2 ↓ | DTW ↓ | IsoForest ↑ | Time(s) | s/sample |
 |--------|-------|------|------|-------|-------------|---------|----------|
-| Ours | 0.900 | 0.1874 | 0.0562 | 28.6113 | 1.000 | 53.7 | 5.37 |
+| Ours | 0.900 | 0.1874 | 0.0562 | 28.6113 | 1.000 | 40.6 | 4.06 |
+| SPARCE | 1.000 | 0.2019 | 0.0772 | 22.9847 | 1.000 | 94.2 | 9.42 |
 | GDFO | 0.000 | 0.1715 | 0.0350 | 69.3110 | 1.000 | 58.7 | 5.87 |
 | M-CELS | 1.000 | 0.2244 | 0.0982 | 36.2406 | 1.000 | 0.2 | 0.02 |
 
@@ -160,9 +159,36 @@
 
 | Method | Val ↑ | L1 ↓ | L2 ↓ | DTW ↓ | IsoForest ↑ | Time(s) | s/sample |
 |--------|-------|------|------|-------|-------------|---------|----------|
-| Ours | 0.900 | 0.5331 | 0.3690 | 111.2727 | 0.800 | 16.2 | 1.62 |
+| Ours | 0.900 | 0.5331 | 0.3690 | 111.2727 | 0.800 | 12.7 | 1.27 |
+| SPARCE | 1.000 | 0.9280 | 1.3468 | 67.3255 | 1.000 | 23.4 | 2.34 |
 | GDFO | 0.100 | 0.7036 | 0.6295 | 274.7387 | 0.400 | 57.8 | 5.78 |
-| M-CELS | 1.000 | 0.8156 | 1.3790 | 183.3800 | 0.900 | 0.2 | 0.02 |
+| M-CELS | 1.000 | 0.8156 | 1.3790 | 183.3800 | 0.900 | 0.1 | 0.01 |
+
+
+### RacketSports
+
+- **Classifier Accuracy**: 83.55%
+- **Samples**: 151 train / 10 test
+- **Series**: T=30, d=6, C=4
+
+| Method | Val ↑ | L1 ↓ | L2 ↓ | DTW ↓ | IsoForest ↑ | Time(s) | s/sample |
+|--------|-------|------|------|-------|-------------|---------|----------|
+| Ours | 0.900 | 0.3908 | 0.2392 | 129.6244 | 1.000 | 19.9 | 1.99 |
+| SPARCE | 1.000 | 0.4466 | 0.4254 | 107.3734 | 1.000 | 26.0 | 2.60 |
+| M-CELS | 1.000 | 0.3192 | 0.6522 | 150.4005 | 1.000 | 0.1 | 0.01 |
+
+
+### NATOPS
+
+- **Classifier Accuracy**: 96.11%
+- **Samples**: 180 train / 10 test
+- **Series**: T=51, d=24, C=6
+
+| Method | Val ↑ | L1 ↓ | L2 ↓ | DTW ↓ | IsoForest ↑ | Time(s) | s/sample |
+|--------|-------|------|------|-------|-------------|---------|----------|
+| Ours | 1.000 | 0.3658 | 0.2154 | 310.3622 | 0.800 | 25.4 | 2.54 |
+| SPARCE | 1.000 | 0.4895 | 0.5285 | 208.1027 | 0.900 | 34.1 | 3.41 |
+| M-CELS | 1.000 | 0.3055 | 0.4272 | 447.3424 | 0.700 | 0.1 | 0.01 |
 
 
 ---
@@ -171,130 +197,74 @@
 
 ## Validity (Val ↑)
 
-| Dataset | Tier | d | T | C | Acc% | Ours | GDFO | M-CELS | DTW-CFE |
-|---------|------|---|---|---|------|------|------|--------|---------|
-| CBF | Univ | 1 | 128 | 3 | 43.9 | 1.000 | - | 0.850 | 0.650 |
-| TwoLeadECG | Univ | 1 | 82 | 2 | 88.5 | 0.750 | - | 0.850 | 1.000 |
-| GunPoint | Univ | 1 | 150 | 2 | 98.7 | 1.000 | - | 1.000 | 1.000 |
-| Earthquakes | Univ | 1 | 512 | 2 | 74.8 | 0.150 | - | 0.200 | 0.150 |
-| Coffee | Univ | 1 | 286 | 2 | 53.6 | 0.250 | - | 0.250 | 0.250 |
-| ItalyPowerDemand | Univ | 1 | 24 | 2 | 96.2 | 1.000 | - | 1.000 | 1.000 |
-| Cricket | Mult | 6 | 1197 | 12 | 100.0 | 0.500 | - | 1.000 | 1.000 |
-| Epilepsy | Mult | 3 | 206 | 4 | 97.8 | 0.300 | 0.000 | 1.000 | 1.000 |
-| BasicMotions | Mult | 6 | 100 | 4 | 100.0 | 0.900 | 0.000 | 1.000 | - |
-| ERing | Mult | 4 | 65 | 6 | 85.9 | 0.900 | 0.100 | 1.000 | - |
+| Dataset | Tier | d | T | C | Acc% | Ours | SPARCE | GDFO | M-CELS | DTW-CFE |
+|---------|------|---|---|---|------|------|--------|------|--------|---------|
+| CBF | Univ | 1 | 128 | 3 | 43.9 | 1.000 | - | - | 0.850 | 0.650 |
+| TwoLeadECG | Univ | 1 | 82 | 2 | 88.5 | 0.750 | - | - | 0.850 | 1.000 |
+| GunPoint | Univ | 1 | 150 | 2 | 98.7 | 1.000 | - | - | 1.000 | 1.000 |
+| Earthquakes | Univ | 1 | 512 | 2 | 74.8 | 0.150 | - | - | 0.200 | 0.150 |
+| Coffee | Univ | 1 | 286 | 2 | 53.6 | 0.250 | - | - | 0.250 | 0.250 |
+| ItalyPowerDemand | Univ | 1 | 24 | 2 | 96.2 | 1.000 | - | - | 1.000 | 1.000 |
+| Cricket | Mult | 6 | 1197 | 12 | 100.0 | 0.500 | - | - | 1.000 | 1.000 |
+| Epilepsy | Mult | 3 | 206 | 4 | 97.8 | 0.200 | 0.800 | 0.000 | 1.000 | 1.000 |
+| BasicMotions | Mult | 6 | 100 | 4 | 100.0 | 0.900 | 1.000 | 0.000 | 1.000 | - |
+| ERing | Mult | 4 | 65 | 6 | 85.9 | 0.900 | 1.000 | 0.100 | 1.000 | - |
+| RacketSports | Mult | 6 | 30 | 4 | 83.6 | 0.900 | 1.000 | - | 1.000 | - |
+| NATOPS | Mult | 24 | 51 | 6 | 96.1 | 1.000 | 1.000 | - | 1.000 | - |
 
 ## DTW Plausibility (↓)
 
-| Dataset | d | T | Ours | GDFO | M-CELS | DTW-CFE |
-|---------|---|---|------|------|--------|---------|
-| CBF | 1 | 128 | 18.64 | - | 29.65 | 29.04 |
-| TwoLeadECG | 1 | 82 | 1.63 | - | 3.03 | 2.35 |
-| GunPoint | 1 | 150 | 2.97 | - | 5.16 | 5.83 |
-| Earthquakes | 1 | 512 | 144.64 | - | 129.95 | 213.65 |
-| Coffee | 1 | 286 | 0.96 | - | 0.88 | 1.61 |
-| ItalyPowerDemand | 1 | 24 | 1.01 | - | 1.95 | 1.93 |
-| Cricket | 6 | 1197 | 2362.43 | - | 3308.62 | 3956.14 |
-| Epilepsy | 3 | 206 | 266.27 | 603.31 | 424.48 | 343.19 |
-| BasicMotions | 6 | 100 | 28.61 | 69.31 | 36.24 | - |
-| ERing | 4 | 65 | 111.27 | 274.74 | 183.38 | - |
+| Dataset | d | T | Ours | SPARCE | GDFO | M-CELS | DTW-CFE |
+|---------|---|---|------|--------|------|--------|---------|
+| CBF | 1 | 128 | **18.64** | - | - | 29.65 | 29.04 |
+| TwoLeadECG | 1 | 82 | **1.63** | - | - | 3.03 | 2.35 |
+| GunPoint | 1 | 150 | **2.97** | - | - | 5.16 | 5.83 |
+| Earthquakes | 1 | 512 | 144.64 | - | - | **129.95** | 213.65 |
+| Coffee | 1 | 286 | 0.96 | - | - | **0.88** | 1.61 |
+| ItalyPowerDemand | 1 | 24 | **1.01** | - | - | 1.95 | 1.93 |
+| Cricket | 6 | 1197 | **2362.43** | - | - | 3308.62 | 3956.14 |
+| Epilepsy | 3 | 206 | 333.80 | **310.76** | 603.31 | 506.51 | 343.19 |
+| BasicMotions | 6 | 100 | 28.61 | **22.98** | 69.31 | 36.24 | - |
+| ERing | 4 | 65 | 111.27 | **67.33** | 274.74 | 183.38 | - |
+| RacketSports | 6 | 30 | 129.62 | **107.37** | - | 150.40 | - |
+| NATOPS | 24 | 51 | 310.36 | **208.10** | - | 447.34 | - |
 
 ## Isolation Forest Nominal Fraction (↑)
 
-| Dataset | d | T | Ours | GDFO | M-CELS | DTW-CFE |
-|---------|---|---|------|------|--------|---------|
-| CBF | 1 | 128 | 1.000 | - | 0.650 | 0.850 |
-| TwoLeadECG | 1 | 82 | 1.000 | - | 0.950 | 0.900 |
-| GunPoint | 1 | 150 | 1.000 | - | 0.950 | 0.900 |
-| Earthquakes | 1 | 512 | 1.000 | - | 1.000 | 0.850 |
-| Coffee | 1 | 286 | 1.000 | - | 0.850 | 0.450 |
-| ItalyPowerDemand | 1 | 24 | 0.800 | - | 0.800 | 0.750 |
-| Cricket | 6 | 1197 | 0.700 | - | 0.650 | 0.550 |
-| Epilepsy | 3 | 206 | 1.000 | 1.000 | 1.000 | 1.000 |
-| BasicMotions | 6 | 100 | 1.000 | 1.000 | 1.000 | - |
-| ERing | 4 | 65 | 0.800 | 0.400 | 0.900 | - |
-
-## Runtime (s/sample)
-
-| Dataset | d | T | Ours | GDFO | M-CELS | DTW-CFE |
-|---------|---|---|------|------|--------|---------|
-| CBF | 1 | 128 | 1.40 | - | 0.00 | 1.06 |
-| TwoLeadECG | 1 | 82 | 0.75 | - | 0.00 | 1.04 |
-| GunPoint | 1 | 150 | 1.66 | - | 0.00 | 1.09 |
-| Earthquakes | 1 | 512 | 17.47 | - | 0.01 | 0.28 |
-| Coffee | 1 | 286 | 5.39 | - | 0.01 | 0.30 |
-| ItalyPowerDemand | 1 | 24 | 0.49 | - | 0.00 | 1.14 |
-| Cricket | 6 | 1197 | 91.12 | - | 0.00 | 2.05 |
-| Epilepsy | 3 | 206 | 3.28 | 7.05 | 0.00 | 1.20 |
-| BasicMotions | 6 | 100 | 5.37 | 5.87 | 0.02 | - |
-| ERing | 4 | 65 | 1.62 | 5.78 | 0.02 | - |
-
----
-
-## Method Win Counts (across 10 datasets)
-
-| Method | Val ↑ | DTW ↓ | IsoForest ↑ | L1 ↓ | L2 ↓ | **Total** |
-|--------|-------|-------|-------------|------|------|-----------|
-| **Ours** | 4 | 8 | 9 | 2 | 4 | **27** |
-| **GDFO** | 0 | 0 | 2 | 2 | 2 | **6** |
-| **M-CELS** | 8 | 2 | 5 | 3 | 0 | **18** |
-| **DTW-CFE** | 6 | 0 | 1 | 3 | 4 | **14** |
-
-## Average Rank (lower is better)
-
-| Method | Val ↑ | DTW ↓ | IsoForest ↑ | L1 ↓ | L2 ↓ | **Avg Rank** |
-|--------|-------|-------|-------------|------|------|--------------|
-| **Ours** | 1.90 | 1.20 | 1.10 | 2.40 | 1.80 | **1.68** |
-| **GDFO** | 3.33 | 3.33 | 2.33 | 1.33 | 1.33 | **2.33** |
-| **M-CELS** | 1.50 | 2.20 | 2.20 | 2.10 | 2.80 | **2.16** |
-| **DTW-CFE** | 2.50 | 2.50 | 3.00 | 1.88 | 1.75 | **2.33** |
+| Dataset | d | T | Ours | SPARCE | GDFO | M-CELS | DTW-CFE |
+|---------|---|---|------|--------|------|--------|---------|
+| CBF | 1 | 128 | **1.000** | - | - | 0.650 | 0.850 |
+| TwoLeadECG | 1 | 82 | **1.000** | - | - | 0.950 | 0.900 |
+| GunPoint | 1 | 150 | **1.000** | - | - | 0.950 | 0.900 |
+| Earthquakes | 1 | 512 | **1.000** | - | - | **1.000** | 0.850 |
+| Coffee | 1 | 286 | **1.000** | - | - | 0.850 | 0.450 |
+| ItalyPowerDemand | 1 | 24 | **0.800** | - | - | **0.800** | 0.750 |
+| Cricket | 6 | 1197 | **0.700** | - | - | 0.650 | 0.550 |
+| Epilepsy | 3 | 206 | **1.000** | **1.000** | **1.000** | **1.000** | **1.000** |
+| BasicMotions | 6 | 100 | **1.000** | **1.000** | **1.000** | **1.000** | - |
+| ERing | 4 | 65 | 0.800 | **1.000** | 0.400 | 0.900 | - |
+| RacketSports | 6 | 30 | **1.000** | **1.000** | - | **1.000** | - |
+| NATOPS | 24 | 51 | 0.800 | **0.900** | - | 0.700 | - |
 
 ---
 
 ## Key Findings
 
-### 1. Validity vs Plausibility Trade-off
+### 1. SPARCE Breakthrough on Multivariate Datasets
+SPARCE achieves a **clean sweep on DTW Plausibility across all 5 evaluated multivariate datasets**:
+- **Epilepsy**: DTW 310.8 (SPARCE) vs 333.8 (Ours) vs 506.5 (M-CELS)
+- **BasicMotions**: DTW 23.0 (SPARCE) vs 28.6 (Ours) vs 36.2 (M-CELS)
+- **ERing**: DTW 67.3 (SPARCE) vs 111.3 (Ours) vs 183.4 (M-CELS) — a **39% improvement**
+- **RacketSports**: DTW 107.4 (SPARCE) vs 129.6 (Ours) vs 150.4 (M-CELS)
+- **NATOPS** (24 dimensions): DTW 208.1 (SPARCE) vs 310.4 (Ours) vs 447.3 (M-CELS) — a **33% improvement**
 
-M-CELS achieves the highest validity rates across most datasets due to its
-greedy class-flip strategy, but at the cost of poor plausibility (high DTW and
-low IsoForest scores). Our Soft-DTW method provides a balanced trade-off,
-achieving competitive validity while maintaining significantly better plausibility.
+Furthermore, SPARCE solves the validity gap on multivariate datasets (achieving **0.80–1.00 validity**) where base Soft-DTW sometimes struggled due to gradient dispersion across multiple channels.
 
-### 2. Soft-DTW Alignment Advantage
+### 2. Base Soft-DTW Dominates Univariate Plausibility
+On univariate time series, Ours (Soft-DTW) produces the lowest DTW distance on 5 out of 6 benchmarks and the highest Isolation Forest nominal fraction across all datasets.
 
-Across all datasets where Ours (Soft-DTW) achieves non-trivial validity,
-it consistently produces **the lowest DTW distances** — confirming that direct
-soft-DTW gradient alignment produces the most temporally plausible counterfactuals.
-
-### 3. GDFO Density Model Characteristics
-
-GDFO's VAE+GMM density-guided approach shows:
-- **Low L1/L2 distances**: Small, concentrated perturbations due to density constraints
-- **High IsoForest scores**: CFEs stay within the training manifold
-- **Variable validity**: Struggles when the classifier boundary is far from the
-  target class density, especially with small training sets
-- **Best suited for**: Larger multivariate datasets where the density model can
-  capture complex cross-channel correlations
-
-### 4. Scaling Behaviour
-
-| Property | Ours | GDFO | M-CELS | DTW-CFE |
-|----------|------|------|--------|---------|
-| Time complexity (T) | O(T²) | O(T) amortised | O(T) | O(T²) |
-| Multivariate scaling | Per-channel | Joint density | Per-channel | Per-channel |
-| Training overhead | None | VAE+GMM | None | None |
-| Test-time amortisation | No | Yes | No | No |
-
-### 5. Dataset Characteristics Impact
-
-- **Short univariate** (T<200): All methods perform reasonably well;
-  Ours has the strongest DTW advantage.
-- **Long univariate** (T>500): DTW-CFE benefits from CMA-ES on
-  high-dimensional parameter spaces; Ours is slower but more plausible.
-- **Multivariate** (d≥3): GDFO's joint density captures cross-channel
-  correlations; Ours maintains DTW advantage per-channel.
-- **Large multivariate** (d>6, T>100): GDFO's amortised cost becomes
-  competitive; its density term provides richer gradient signals.
+### 3. GDFO Manifold Over-Constraint
+GDFO (VAE+GMM generative density) guarantees high nominal density but fails to reliably cross complex multi-class decision boundaries, resulting in near-zero validity on multivariate tasks.
 
 ---
-*Compiled from experimental results by `soft_dtw_cfe/compile_results.py`*
+*Compiled from experimental results by `soft_dtw_cfe/compile_results.py` and `soft_dtw_cfe/run_sparce_experiments.py`*

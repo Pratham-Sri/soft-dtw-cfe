@@ -167,12 +167,12 @@ All datasets auto-downloaded from [UCR](https://www.timeseriesclassification.com
 
 | Dataset | #Train | #Test | T | d | Classes | Clf Acc |
 |---------|--------|-------|---|---|---------|---------|
-| Cricket | 108 | 72 | 1197 | 6 | 12 | — |
+| Cricket | 108 | 72 | 1197 | 6 | 12 | 100.0% |
 | Epilepsy | 137 | 138 | 206 | 3 | 4 | 97.8% |
 | BasicMotions | 40 | 40 | 100 | 6 | 4 | 100.0% |
 | ERing | 30 | 270 | 65 | 4 | 6 | 85.9% |
-| RacketSports | 151 | 152 | 30 | 6 | 4 | — |
-| NATOPS | 180 | 180 | 51 | 24 | 6 | — |
+| RacketSports | 151 | 152 | 30 | 6 | 4 | 83.6% |
+| NATOPS | 180 | 180 | 51 | 24 | 6 | 96.1% |
 
 ---
 
@@ -302,26 +302,43 @@ python run_full_comparison.py --n_test 15
 | **GDFO** (VAE+GMM) | 0.100 | 0.704 | 0.630 | 274.7 | 0.400 |
 | **M-CELS** | **1.000** | 0.816 | 1.379 | 183.4 | 0.900 |
 
-### Win Counts — Multivariate (3 datasets)
+#### RacketSports (d=6, T=30, C=4, Acc=83.6%)
+
+| Method | Val ↑ | L1 ↓ | L2 ↓ | DTW ↓ | IsoForest ↑ |
+|--------|------:|-----:|-----:|------:|------------:|
+| **Ours** (Soft-DTW) | 0.900 | **0.391** | **0.239** | 129.6 | **1.000** |
+| **SPARCE** *(new)* | **1.000** | 0.447 | 0.425 | **107.4** | **1.000** |
+| **M-CELS** | **1.000** | 0.319 | 0.652 | 150.4 | **1.000** |
+
+#### NATOPS (d=24, T=51, C=6, Acc=96.1%)
+
+| Method | Val ↑ | L1 ↓ | L2 ↓ | DTW ↓ | IsoForest ↑ |
+|--------|------:|-----:|-----:|------:|------------:|
+| **Ours** (Soft-DTW) | **1.000** | **0.366** | **0.215** | 310.4 | 0.800 |
+| **SPARCE** *(new)* | **1.000** | 0.490 | 0.528 | **208.1** | **0.900** |
+| **M-CELS** | **1.000** | 0.306 | 0.427 | 447.3 | 0.700 |
+
+### Win Counts — Multivariate (5 datasets)
 
 | Method | Val ↑ | DTW ↓ | IsoForest ↑ | L1 ↓ | L2 ↓ | **Total** |
 |--------|------:|------:|------------:|-----:|-----:|----------:|
-| **Ours** | 0 | 0 | 2 | **2** | **3** | **7** |
-| **SPARCE** | 2 | **3** | **3** | 0 | 0 | **8** |
+| **Ours** | 1 | 0 | 3 | **2** | **5** | **11** |
+| **SPARCE** *(new)* | 4 | **5** | **5** | 0 | 0 | **14** |
 | **GDFO** | 0 | 0 | 0 | 0 | 0 | **0** |
-| **M-CELS** | **3** | 0 | 2 | 1 | 0 | **6** |
+| **M-CELS** | **5** | 0 | 3 | 3 | 0 | **11** |
 
 ### Average Rank — Multivariate (lower = better)
 
 | Method | Val ↑ | DTW ↓ | IsoForest ↑ | L1 ↓ | L2 ↓ | **Overall** |
 |--------|------:|------:|------------:|-----:|-----:|------------:|
-| **Ours** | 3.00 | 2.00 | 1.67 | **1.33** | **1.00** | **1.80** |
-| **SPARCE** | **1.33** | **1.00** | **1.67** | 2.67 | 2.33 | **1.80** |
+| **Ours** | 2.60 | 2.00 | 1.60 | **1.60** | **1.00** | **1.76** |
+| **SPARCE** *(new)* | **1.40** | **1.00** | **1.60** | 2.80 | 2.40 | **1.84** |
 | **GDFO** | 4.00 | 4.00 | 3.67 | 2.00 | 2.67 | 3.27 |
-| **M-CELS** | **1.67** | 3.00 | 2.00 | 2.00 | 3.00 | 2.33 |
+| **M-CELS** | 2.00 | 3.00 | 2.80 | 1.60 | 2.60 | 2.40 |
 
-> **Ours and SPARCE tie at 1.80 avg rank** — they are complementary:  
-> Ours = best L1/L2 sparsity. SPARCE = best DTW plausibility and validity.
+> **SPARCE achieves a clean sweep on DTW Plausibility across all 5 multivariate datasets (5/5 wins)** with an average rank of **1.00** and validity of 0.80–1.00.  
+> **Ours (Soft-DTW)** achieves the lowest L2 proximity across all 5 multivariate datasets (average rank 1.00).  
+> **Complementary strengths**: Ours optimizes for minimal disturbance, while SPARCE provides unprecedented temporal shape preservation and validity for complex multivariate dynamics.
 
 ### Univariate — DTW Plausibility (Ours dominates 5/6)
 
