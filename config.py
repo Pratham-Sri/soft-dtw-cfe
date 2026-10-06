@@ -35,13 +35,25 @@ UNIVARIATE_DATASETS = [
     "ItalyPowerDemand",
 ]
 
-# Multivariate datasets from UEA archive
+# Multivariate datasets from UEA archive (original — small)
 MULTIVARIATE_DATASETS = [
     "Cricket",       # Note: may need re-download if corrupted (aeon cache issue)
     "Epilepsy",
 ]
 
+# Larger multivariate datasets from UEA archive (new — for GDFO evaluation)
+# Selected for diversity in domain, dimensionality, and complexity.
+LARGE_MULTIVARIATE_DATASETS = [
+    "NATOPS",              # Body sensor: 24 channels, T=51, 6 classes, 180/180 train/test
+    "UWaveGestureLibrary", # Accelerometer: 3 channels, T=315, 8 classes, 120/320 train/test
+    "BasicMotions",        # Motion sensor: 6 channels, T=100, 4 classes, 40/40 train/test
+    "ERing",               # Electric ring: 4 channels, T=65, 6 classes, 30/270 train/test
+    "Handwriting",         # Pen trajectory: 3 channels, T=152, 26 classes, 150/850 train/test
+    "RacketSports",        # IMU: 6 channels, T=30, 4 classes, 151/152 train/test
+]
+
 ALL_DATASETS = UNIVARIATE_DATASETS + MULTIVARIATE_DATASETS
+GDFO_DATASETS = MULTIVARIATE_DATASETS + LARGE_MULTIVARIATE_DATASETS
 
 # Datasets confirmed available without download issues
 # (run_experiments.py handles per-dataset errors gracefully)
@@ -89,6 +101,23 @@ DTWCFE_CONFIG = {
     "window": None,       # None = full DTW; auto-banded for T>500 in generator
     "width_factor": 1.0,  # RBF overlap
     "eps": 1e-3,          # velocity floor
+}
+
+# ── GDFO hyperparameters (generative density function optimisation) ────────
+GDFO_CONFIG = {
+    "z_dim": 32,             # VAE latent dimensionality
+    "vae_epochs": 80,        # VAE training epochs
+    "vae_beta": 0.5,         # β-VAE KL weight
+    "gmm_components": 5,     # GMM components per class
+    "lambda_valid": 2.0,     # validity weight
+    "lambda_density": 0.5,   # density weight
+    "lambda_dtw": 0.3,       # DTW alignment weight
+    "tau": 0.5,              # hinge loss threshold
+    "lr": 0.01,              # optimisation learning rate
+    "num_iterations": 200,   # gradient descent steps
+    "k": 5,                  # k for DTW neighbours
+    "gamma": 1.0,            # soft-DTW smoothing
+    "use_dtw": True,         # include DTW alignment term
 }
 
 # ── Evaluation hyperparameters (Section 5.1) ──────────────────────────────────

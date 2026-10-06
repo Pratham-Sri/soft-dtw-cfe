@@ -47,46 +47,277 @@ class TimeSeriesDataset(Dataset):
         return self.X[idx], self.y[idx]
 
 
+def _cache_path(name: str) -> str:
+    try:
+        from soft_dtw_cfe.config import DATA_DIR
+    except ImportError:
+        from config import DATA_DIR
+    return os.path.join(DATA_DIR, f"{name}.npz")
+
+
+def _normalize_channels(X_train: np.ndarray, X_test: np.ndarray):
+    """Z-score normalize each channel independently using training statistics."""
+    for ch in range(X_train.shape[1]):
+        mean = float(X_train[:, ch, :].mean())
+        std = float(X_train[:, ch, :].std())
+        if std < 1e-8:
+            std = 1.0
+        X_train[:, ch, :] = (X_train[:, ch, :] - mean) / std
+        X_test[:, ch, :] = (X_test[:, ch, :] - mean) / std
+    return X_train, X_test
+
+
+def load_physionet_mitbih(seq_len: int = 5400, n_per_record: int = 4):
+    """
+    Load long multivariate ECG time series from PhysioNet MIT-BIH Arrhythmia Database.
+    
+    Channels: d=2 (MLII, V1/V5)
+    Length: T=5400 (15 seconds at 360 Hz)
+    Classes: 
+      0: Normal Sinus Rhythm (records 100, 101, 103, 105, 112, 113, 115, 117, 121, 122)
+      1: Ventricular Arrhythmia (records 106, 119, 200, 201, 203, 208, 210, 213, 215, 221)
+    """
+    cache = _cache_path("PhysioNet_MITBIH")
+    if os.path.exists(cache):
+        print(f"[DATA] Loading cached PhysioNet_MITBIH from {cache}")
+        data = np.load(cache)
+        X_train, y_train = data["X_train"], data["y_train"]
+        X_test, y_test = data["X_test"], data["y_test"]
+    else:
+        print("[DATA] Downloading / extracting PhysioNet MIT-BIH records...")
+        import wfdb
+        normal_recs = ["100", "101", "103", "105", "112", "113", "115", "117", "121", "122"]
+        arrhyth_recs = ["106", "119", "200", "201", "203", "208", "210", "213", "215", "221"]
+
+        X_list, y_list = [], []
+
+        for rec_id in normal_recs:
+            try:
+                rec = wfdb.rdrecord(rec_id, pn_dir="mitdb", sampto=seq_len * n_per_record)
+                sig = rec.p_signal.astype(np.float32)  # (N, 2)
+                for i in range(n_per_record):
+                    seg = sig[i * seq_len:(i + 1) * seq_len]
+                    if len(seg) == seq_len:
+                        X_list.append(seg.T)  # (2, T)
+                        y_list.append(0)
+            except Exception as e:
+                print(f"  [WARN] Record {rec_id} error: {e}")
+
+        for rec_id in arrhyth_recs:
+            try:
+                rec = wfdb.rdrecord(rec_id, pn_dir="mitdb", sampto=seq_len * n_per_record)
+                sig = rec.p_signal.astype(np.float32)
+                for i in range(n_per_record):
+                    seg = sig[i * seq_len:(i + 1) * seq_len]
+                    if len(seg) == seq_len:
+                        X_list.append(seg.T)
+                        y_list.append(1)
+            except Exception as e:
+                print(f"  [WARN] Record {rec_id} error: {e}")
+
+        X = np.array(X_list, dtype=np.float32)
+        y = np.array(y_list, dtype=np.int64)
+
+        # Stratified train/test split (70/30)
+        from sklearn.model_selection import train_test_split
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.3, random_state=42, stratify=y
+        )
+        X_train, X_test = _normalize_channels(X_train, X_test)
+        np.savez_compressed(cache, X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test)
+
+    metadata = {
+        "n_classes": 2,
+        "seq_len": X_train.shape[2],
+        "n_channels": X_train.shape[1],
+        "n_train": len(X_train),
+        "n_test": len(X_test),
+        "label_map": {0: "Normal", 1: "Arrhythmia"},
+    }
+    print(f"  -> n_train={metadata['n_train']}, n_test={metadata['n_test']}, "
+          f"T={metadata['seq_len']}, d={metadata['n_channels']}, c={metadata['n_classes']}")
+    return X_train, y_train, X_test, y_test, metadata
+
+
+def load_uci_eeg_eyestate(seq_len: int = 5000, stride: int = 500):
+    """
+    Load long multivariate EEG time series from UCI EEG Eye State.
+    
+    Channels: d=14 (AF3, F7, F3, FC5, T7, P7, O1, O2, P8, T8, FC6, F4, F8, AF4)
+    Length: T=5000 time steps
+    Classes: 0 (Eye Open), 1 (Eye Closed)
+    """
+    cache = _cache_path("UCI_EEGEyeState")
+    if os.path.exists(cache):
+        print(f"[DATA] Loading cached UCI_EEGEyeState from {cache}")
+        data = np.load(cache)
+        X_train, y_train = data["X_train"], data["y_train"]
+        X_test, y_test = data["X_test"], data["y_test"]
+    else:
+        print("[DATA] Downloading UCI EEG Eye State...")
+        import urllib.request
+        url = "https://archive.ics.uci.edu/ml/machine-learning-databases/00264/EEG%20Eye%20State.arff"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            lines = r.read().decode("utf-8", errors="ignore").splitlines()
+
+        data_lines = [l for l in lines if l and not l.startswith("@")]
+        raw = np.array([[float(x) for x in l.split(",")] for l in data_lines], dtype=np.float32)
+
+        signals = raw[:, :-1]  # (14980, 14)
+        labels = raw[:, -1].astype(np.int64)
+
+        X_windows, y_windows = [], []
+        for start in range(0, len(signals) - seq_len + 1, stride):
+            window = signals[start:start + seq_len].T  # (14, T)
+            lbl = int(np.round(labels[start:start + seq_len].mean()))
+            X_windows.append(window)
+            y_windows.append(lbl)
+
+        X = np.array(X_windows, dtype=np.float32)
+        y = np.array(y_windows, dtype=np.int64)
+
+        from sklearn.model_selection import train_test_split
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.3, random_state=42, stratify=y
+        )
+        X_train, X_test = _normalize_channels(X_train, X_test)
+        np.savez_compressed(cache, X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test)
+
+    metadata = {
+        "n_classes": 2,
+        "seq_len": X_train.shape[2],
+        "n_channels": X_train.shape[1],
+        "n_train": len(X_train),
+        "n_test": len(X_test),
+        "label_map": {0: "EyeOpen", 1: "EyeClosed"},
+    }
+    print(f"  -> n_train={metadata['n_train']}, n_test={metadata['n_test']}, "
+          f"T={metadata['seq_len']}, d={metadata['n_channels']}, c={metadata['n_classes']}")
+    return X_train, y_train, X_test, y_test, metadata
+
+
+def load_coupled_lorenz_dynamics(seq_len: int = 5000, n_samples_per_class: int = 25):
+    """
+    Generate synthetic long multivariate nonlinear dynamical system (Coupled Lorenz Attractors).
+    
+    Channels: d=6 (x1, y1, z1, x2, y2, z2)
+    Length: T=5000
+    Classes:
+      0: Synchronous Chaos (coupling kappa=2.5, rho=28.0)
+      1: Desynchronous Chaos (coupling kappa=0.15, rho=28.0)
+      2: Periodic Limit Cycle (rho=14.0, below Hopf bifurcation)
+    """
+    cache = _cache_path("CoupledLorenz_Dynamics")
+    if os.path.exists(cache):
+        print(f"[DATA] Loading cached CoupledLorenz_Dynamics from {cache}")
+        data = np.load(cache)
+        X_train, y_train = data["X_train"], data["y_train"]
+        X_test, y_test = data["X_test"], data["y_test"]
+    else:
+        print("[DATA] Generating Coupled Lorenz continuous dynamics (T=5000, d=6)...")
+        dt = 0.01
+        sigma = 10.0
+        beta = 8.0 / 3.0
+
+        configs = [
+            (2.5, 28.0, 0),   # Synchronous chaos
+            (0.15, 28.0, 1),  # Desynchronous chaos
+            (0.5, 14.0, 2),   # Periodic / Limit cycle
+        ]
+
+        np.random.seed(42)
+        X_list, y_list = [], []
+
+        for kappa, rho, label in configs:
+            for s in range(n_samples_per_class):
+                # Random initial condition
+                state = np.random.randn(6) * 2.0 + np.array([1.0, 1.0, 20.0, 1.2, 0.8, 20.2])
+                traj = np.zeros((seq_len, 6), dtype=np.float32)
+
+                # Warmup 500 steps to reach attractor
+                for _ in range(500):
+                    x1, y1, z1, x2, y2, z2 = state
+                    dx1 = sigma * (y1 - x1) + kappa * (x2 - x1)
+                    dy1 = x1 * (rho - z1) - y1
+                    dz1 = x1 * y1 - beta * z1
+                    dx2 = sigma * (y2 - x2) + kappa * (x1 - x2)
+                    dy2 = x2 * (rho - z2) - y2
+                    dz2 = x2 * y2 - beta * z2
+                    state = state + dt * np.array([dx1, dy1, dz1, dx2, dy2, dz2])
+
+                for t in range(seq_len):
+                    x1, y1, z1, x2, y2, z2 = state
+                    dx1 = sigma * (y1 - x1) + kappa * (x2 - x1)
+                    dy1 = x1 * (rho - z1) - y1
+                    dz1 = x1 * y1 - beta * z1
+                    dx2 = sigma * (y2 - x2) + kappa * (x1 - x2)
+                    dy2 = x2 * (rho - z2) - y2
+                    dz2 = x2 * y2 - beta * z2
+                    state = state + dt * np.array([dx1, dy1, dz1, dx2, dy2, dz2])
+                    traj[t] = state
+
+                X_list.append(traj.T)  # (6, T)
+                y_list.append(label)
+
+        X = np.array(X_list, dtype=np.float32)
+        y = np.array(y_list, dtype=np.int64)
+
+        from sklearn.model_selection import train_test_split
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.3, random_state=42, stratify=y
+        )
+        X_train, X_test = _normalize_channels(X_train, X_test)
+        np.savez_compressed(cache, X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test)
+
+    metadata = {
+        "n_classes": 3,
+        "seq_len": X_train.shape[2],
+        "n_channels": X_train.shape[1],
+        "n_train": len(X_train),
+        "n_test": len(X_test),
+        "label_map": {0: "SyncChaos", 1: "DesyncChaos", 2: "LimitCycle"},
+    }
+    print(f"  -> n_train={metadata['n_train']}, n_test={metadata['n_test']}, "
+          f"T={metadata['seq_len']}, d={metadata['n_channels']}, c={metadata['n_classes']}")
+    return X_train, y_train, X_test, y_test, metadata
+
+
 def load_dataset(name: str):
     """
-    Load a dataset by name from the UCR/UEA archive.
+    Load a dataset by name from UCR/UEA or extended long multivariate archives.
     
-    Returns:
-        X_train: np.ndarray of shape (n_train, d, T)
-        y_train: np.ndarray of int labels (n_train,)
-        X_test:  np.ndarray of shape (n_test, d, T)
-        y_test:  np.ndarray of int labels (n_test,)
-        metadata: dict with keys 'n_classes', 'seq_len', 'n_channels'
+    Supports:
+      - PhysioNet_MITBIH: Real 2-lead ECG, T=5400
+      - UCI_EEGEyeState: Real 14-channel EEG, T=5000
+      - CoupledLorenz_Dynamics: 6-channel dynamical system, T=5000
+      - UCR/UEA datasets via aeon (Epilepsy, BasicMotions, etc.)
     """
-    if not HAS_AEON:
-        raise ImportError("aeon is required for dataset loading. Install via: pip install aeon")
-
     print(f"[DATA] Loading dataset: {name} ...")
+
+    if name == "PhysioNet_MITBIH":
+        return load_physionet_mitbih()
+    elif name == "UCI_EEGEyeState":
+        return load_uci_eeg_eyestate()
+    elif name == "CoupledLorenz_Dynamics":
+        return load_coupled_lorenz_dynamics()
+
+    if not HAS_AEON:
+        raise ImportError("aeon is required for UCR/UEA dataset loading. Install via: pip install aeon")
 
     # Load from aeon — returns (X, y) where X has shape (n, n_channels, seq_len)
     X_train, y_train = load_classification(name, split="train")
     X_test, y_test = load_classification(name, split="test")
 
     # aeon returns X as np.ndarray of shape (n_samples, n_channels, seq_len)
-    # y is returned as string array — convert to integer
-    # First build a label map
     all_labels = sorted(set(y_train.tolist()) | set(y_test.tolist()))
     label_map = {label: idx for idx, label in enumerate(all_labels)}
     y_train = np.array([label_map[l] for l in y_train])
     y_test = np.array([label_map[l] for l in y_test])
 
-    # Handle NaN values (some UCR datasets have trailing NaN for unequal length)
     X_train = np.nan_to_num(X_train, nan=0.0).astype(np.float32)
     X_test = np.nan_to_num(X_test, nan=0.0).astype(np.float32)
-
-    # Normalise each channel independently (z-score) using train stats
-    for ch in range(X_train.shape[1]):
-        mean = X_train[:, ch, :].mean()
-        std = X_train[:, ch, :].std()
-        if std < 1e-8:
-            std = 1.0
-        X_train[:, ch, :] = (X_train[:, ch, :] - mean) / std
-        X_test[:, ch, :] = (X_test[:, ch, :] - mean) / std
+    X_train, X_test = _normalize_channels(X_train, X_test)
 
     n_classes = len(all_labels)
     seq_len = X_train.shape[2]
@@ -128,3 +359,4 @@ def get_target_class_samples(X_train, y_train, target_class, device="cpu"):
     mask = y_train == target_class
     X_target = X_train[mask]
     return torch.tensor(X_target, dtype=torch.float32).to(device)
+

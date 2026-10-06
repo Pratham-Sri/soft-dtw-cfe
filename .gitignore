@@ -1,4 +1,4 @@
-# Python
+# ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
@@ -9,36 +9,40 @@ dist/
 *.egg-info/
 .eggs/
 
-# Virtual environments
+# ── Virtual environments ───────────────────────────────────────────────────────
 venv/
 .venv/
 env/
 .env/
 
-# Jupyter
+# ── Jupyter ───────────────────────────────────────────────────────────────────
 .ipynb_checkpoints/
 *.ipynb
 
-# IDE
+# ── IDE ───────────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
+
+# ── OS ────────────────────────────────────────────────────────────────────────
 .DS_Store
+Thumbs.db
 
-# Data (large downloaded datasets — use aeon to re-download)
-soft_dtw_cfe/data/datasets/
+# ── Data — large downloaded datasets (use aeon to re-download) ────────────────
+data/datasets/
 
-# Saved models (optional — keep if small)
-# soft_dtw_cfe/models/saved/
+# ── Figures — keep only paper-quality summary figures, skip individual CFE/loss plots ──
+# Include: *_metrics_comparison.png, *_paper_metrics.png
+# Exclude: per-sample CFE plots and loss curves (too many, ~38 MB total)
+visualization/figures/*_cf.png
+visualization/figures/*_loss.png
 
-# Results (generated — keep RESULTS.md but not large JSON)
-soft_dtw_cfe/results/*.json
-
-# Logs / temp
+# ── Logs / temp ───────────────────────────────────────────────────────────────
 *.log
 *.tmp
-optuna.db
+*.db
 
-# OS
-Thumbs.db
+# ── Scratch / local analysis ──────────────────────────────────────────────────
+scratch/
+.agents/
