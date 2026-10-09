@@ -546,6 +546,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="SPARCE Experiment Runner")
     parser.add_argument("--datasets", nargs="+", default=SPARCE_DATASETS,
                         help="Datasets to run")
+    parser.add_argument("--medical", action="store_true",
+                        help="Run on medical datasets (PTB_XL, PhysioNet_MITBIH, UCI_EEGEyeState)")
     parser.add_argument("--n_test", type=int, default=15,
                         help="Number of test samples (default: 15)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
@@ -557,6 +559,10 @@ def parse_args():
 
 def main():
     args = parse_args()
+
+    if args.medical:
+        from soft_dtw_cfe.config import MEDICAL_DATASETS
+        args.datasets = MEDICAL_DATASETS
 
     print(f"Device: {DEVICE}")
     print(f"Datasets: {args.datasets}")

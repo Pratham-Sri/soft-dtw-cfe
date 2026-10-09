@@ -283,19 +283,139 @@ def load_coupled_lorenz_dynamics(seq_len: int = 5000, n_samples_per_class: int =
     return X_train, y_train, X_test, y_test, metadata
 
 
+def load_ptbxl(
+    task: str = "binary_norm_mi",
+    n_samples_per_class: int = 50,
+    downsample: int = 4,
+    test_size: float = 0.3,
+    random_state: int = 42,
+):
+    """
+    Load real 12-lead clinical ECG time series from PhysioNet PTB-XL database.
+    
+    Channels: d=12 (I, II, III, AVR, AVL, AVF, V1, V2, V3, V4, V5, V6)
+    Length: T = 1000 // downsample (default T=250 for fast Soft-DTW, downsample=1 for full T=1000)
+    Classes:
+      binary_norm_mi:
+        0: Normal (NORM)
+        1: Myocardial Infarction (MI)
+      multiclass_5:
+        0: NORM, 1: MI, 2: STTC, 3: CD, 4: HYP
+    """
+    eff_T = 1000 // max(downsample, 1)
+    cache = _cache_path(f"PTB_XL_{task}_n{n_samples_per_class}_T{eff_T}")
+    label_map = {0: "Normal", 1: "Myocardial_Infarction"} if task == "binary_norm_mi" else {
+        0: "NORM", 1: "MI", 2: "STTC", 3: "CD", 4: "HYP"
+    }
+
+    if os.path.exists(cache):
+        print(f"[DATA] Loading cached PTB-XL from {cache}")
+        data = np.load(cache)
+        X_train, y_train = data["X_train"], data["y_train"]
+        X_test, y_test = data["X_test"], data["y_test"]
+    else:
+        print(f"[DATA] Preparing PTB-XL 12-lead ECG dataset ({task}, {n_samples_per_class} samples/class, T={eff_T})...")
+        import pandas as pd
+        import ast
+        from concurrent.futures import ThreadPoolExecutor
+
+        try:
+            from soft_dtw_cfe.config import DATA_DIR
+        except ImportError:
+            from config import DATA_DIR
+
+        csv_path = os.path.join(DATA_DIR, "ptbxl_database.csv")
+        scp_path = os.path.join(DATA_DIR, "scp_statements.csv")
+
+        # Download metadata CSVs if not already present
+        if not os.path.exists(csv_path):
+            import urllib.request
+            print("  Downloading PTB-XL database metadata...")
+            req = urllib.request.Request("https://physionet.org/files/ptb-xl/1.0.3/ptbxl_database.csv", headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=60) as r, open(csv_path, "wb") as f:
+                f.write(r.read())
+
+        if not os.path.exists(scp_path):
+            import urllib.request
+            req = urllib.request.Request("https://physionet.org/files/ptb-xl/1.0.3/scp_statements.csv", headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=30) as r, open(scp_path, "wb") as f:
+                f.write(r.read())
+
+        df = pd.read_csv(csv_path)
+        df_scp = pd.read_csv(scp_path, index_col=0)
+        diag_map = df_scp[df_scp["diagnostic"] == 1.0]["diagnostic_class"].to_dict()
+
+        def get_classes(s):
+            d = ast.literal_eval(s) if isinstance(s, str) else {}
+            return set(diag_map[k] for k in d if k in diag_map)
+
+        df["classes"] = df["scp_codes"].apply(get_classes)
+
+        if task == "binary_norm_mi":
+            norm_files = df[df["classes"] == {"NORM"}]["filename_lr"].tolist()[:n_samples_per_class]
+            mi_files = df[df["classes"] == {"MI"}]["filename_lr"].tolist()[:n_samples_per_class]
+            file_label_pairs = [(f, 0) for f in norm_files] + [(f, 1) for f in mi_files]
+        else:
+            classes_order = ["NORM", "MI", "STTC", "CD", "HYP"]
+            file_label_pairs = []
+            for idx, c in enumerate(classes_order):
+                c_files = df[df["classes"] == {c}]["filename_lr"].tolist()[:n_samples_per_class]
+                file_label_pairs.extend([(f, idx) for f in c_files])
+
+        import wfdb
+        def _fetch_record(item):
+            fpath, lbl = item
+            folder, fname = os.path.split(fpath)
+            rec = wfdb.rdrecord(fname, pn_dir=f"ptb-xl/1.0.3/{folder}/")
+            sig = rec.p_signal.T  # (12, 1000)
+            if downsample > 1:
+                sig = sig[:, ::downsample]
+            return sig.astype(np.float32), lbl
+
+        print(f"  Downloading and processing {len(file_label_pairs)} 12-lead ECG records via ThreadPool...")
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            fetched = list(executor.map(_fetch_record, file_label_pairs))
+
+        X = np.array([f[0] for f in fetched], dtype=np.float32)
+        y = np.array([f[1] for f in fetched], dtype=np.int64)
+
+        from sklearn.model_selection import train_test_split
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size, random_state=random_state, stratify=y
+        )
+        X_train, X_test = _normalize_channels(X_train, X_test)
+        np.savez_compressed(cache, X_train=X_train, y_train=y_train, X_test=X_test, y_test=y_test)
+
+    metadata = {
+        "n_classes": len(np.unique(y_train)),
+        "seq_len": X_train.shape[2],
+        "n_channels": X_train.shape[1],
+        "n_train": len(X_train),
+        "n_test": len(X_test),
+        "label_map": label_map,
+        "leads": ["I", "II", "III", "AVR", "AVL", "AVF", "V1", "V2", "V3", "V4", "V5", "V6"],
+    }
+    print(f"  -> n_train={metadata['n_train']}, n_test={metadata['n_test']}, "
+          f"T={metadata['seq_len']}, d={metadata['n_channels']}, c={metadata['n_classes']}")
+    return X_train, y_train, X_test, y_test, metadata
+
+
 def load_dataset(name: str):
     """
     Load a dataset by name from UCR/UEA or extended long multivariate archives.
     
     Supports:
-      - PhysioNet_MITBIH: Real 2-lead ECG, T=5400
-      - UCI_EEGEyeState: Real 14-channel EEG, T=5000
-      - CoupledLorenz_Dynamics: 6-channel dynamical system, T=5000
+      - PTB_XL: Real 12-lead clinical ECG (d=12, T=250/1000)
+      - PhysioNet_MITBIH: Real 2-lead ECG (d=2)
+      - UCI_EEGEyeState: Real 14-channel EEG (d=14, T=5000)
+      - CoupledLorenz_Dynamics: 6-channel dynamical system (d=6, T=5000)
       - UCR/UEA datasets via aeon (Epilepsy, BasicMotions, etc.)
     """
     print(f"[DATA] Loading dataset: {name} ...")
 
-    if name == "PhysioNet_MITBIH":
+    if name == "PTB_XL" or name.startswith("PTB_XL"):
+        return load_ptbxl()
+    elif name == "PhysioNet_MITBIH":
         return load_physionet_mitbih()
     elif name == "UCI_EEGEyeState":
         return load_uci_eeg_eyestate()
