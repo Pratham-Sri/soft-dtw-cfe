@@ -55,6 +55,14 @@ LARGE_MULTIVARIATE_DATASETS = [
 ALL_DATASETS = UNIVARIATE_DATASETS + MULTIVARIATE_DATASETS
 GDFO_DATASETS = MULTIVARIATE_DATASETS + LARGE_MULTIVARIATE_DATASETS
 
+# Medical datasets (multi-lead clinical ECG, EEG, and physiological time series)
+MEDICAL_DATASETS = [
+    "PTB_XL",             # 12-lead clinical ECG: d=12, T=250/1000, Normal vs MI / multiclass
+    "PhysioNet_MITBIH",   # 2-lead ambulatory ECG: d=2, Normal vs Arrhythmia
+    "UCI_EEGEyeState",    # 14-channel EEG: d=14, Eye Open vs Eye Closed
+    "Epilepsy",           # 3-channel accelerometer/epilepsy
+]
+
 # Datasets confirmed available without download issues
 # (run_experiments.py handles per-dataset errors gracefully)
 CONFIRMED_DATASETS = [
