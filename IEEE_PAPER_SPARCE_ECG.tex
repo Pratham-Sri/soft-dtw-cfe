@@ -2,7 +2,7 @@
 \IEEEoverridecommandlockouts
 
 % ==============================================================================
-% REQUIRED PACKAGES
+% REQUIRED PACKAGES & COMPACT TYPOGRAPHY
 % ==============================================================================
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath,amssymb,amsfonts,amsthm}
@@ -17,26 +17,34 @@
 \usepackage{url}
 \usepackage{cite}
 \usepackage{subcaption}
-\usepackage{microtype}
+\usepackage[activate={true,nocompatibility},tracking=true,kerning=true,spacing=true,factor=1100]{microtype}
 \usepackage{tikz}
-\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit, backgrounds, decorations.pathreplacing}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit, backgrounds}
 
 \graphicspath{{visualization/figures/}}
 
-% Mathematical notation shortcuts
+% ── Strict IEEE 8-Page Spacing Budget Optimization ───────────────────────────
+\setlength{\textfloatsep}{5pt plus 1pt minus 1pt}
+\setlength{\floatsep}{5pt plus 1pt minus 1pt}
+\setlength{\intextsep}{5pt plus 1pt minus 1pt}
+\setlength{\abovecaptionskip}{3pt plus 1pt minus 1pt}
+\setlength{\belowcaptionskip}{1pt plus 1pt minus 1pt}
+\setlength{\abovedisplayskip}{3pt plus 1pt minus 1pt}
+\setlength{\belowdisplayskip}{3pt plus 1pt minus 1pt}
+\setlength{\abovedisplayshortskip}{2pt plus 1pt minus 1pt}
+\setlength{\belowdisplayshortskip}{2pt plus 1pt minus 1pt}
+
+% Notation shortcuts
 \newcommand{\R}{\mathbb{R}}
-\newcommand{\E}{\mathbb{E}}
 \newcommand{\norm}[1]{\left\lVert#1\right\rVert}
-\newcommand{\abs}[1]{\left\lvert#1\right\rvert}
 \DeclareMathOperator*{\argmin}{arg\,min}
-\DeclareMathOperator*{\argmax}{arg\,max}
 
 \begin{document}
 
 % ==============================================================================
 % TITLE & AUTHORS
 % ==============================================================================
-\title{SPARCE: Saliency-Guided Prototype-Aligned Refinement for Morphologically Plausible Counterfactual Explanations in Electrocardiogram Telemetry Across Multivariate and Univariate Regimes}
+\title{\LARGE\bfseries SPARCE: Saliency-Guided Prototype-Aligned Refinement for Morphologically Plausible Counterfactual Explanations in Electrocardiogram Telemetry Across Multivariate and Univariate Regimes}
 
 \author{\IEEEauthorblockN{Pratham\IEEEauthorrefmark{1}, Deep Learning \& Biomedical Informatics Laboratory\IEEEauthorrefmark{1}}
 \IEEEauthorblockA{\IEEEauthorrefmark{1}Department of Computer Science and Engineering\\
@@ -49,117 +57,87 @@ Email: research@antigravity.ai}
 % ABSTRACT
 % ==============================================================================
 \begin{abstract}
-Deep neural networks have achieved diagnostic-grade accuracy in automated electrocardiogram (ECG) interpretation. However, their opaque black-box nature creates acute liability and safety risks in critical care cardiology. Post-hoc Counterfactual Explanations (CFEs) offer an actionable recourse paradigm by answering: \textit{"What minimal, physiologically authentic modification would reverse the algorithmic diagnosis?"} Standard CFE algorithms relying on pointwise Euclidean ($L_1, L_2$) metrics introduce high-frequency, uncoordinated noise spikes that resemble lethal fibrillatory artifacts rather than authentic cardiac conduction changes. Conversely, state-of-the-art differentiable Soft Dynamic Time Warping (Soft-DTW) methods suffer from an $\mathcal{O}(I \cdot K \cdot T^2)$ computational bottleneck and tend to over-smooth pathognomonic morphology, while generative density models (e.g., GDFO) suffer catastrophic validity collapse on complex manifolds.
+Deep neural networks achieve diagnostic accuracy in automated electrocardiogram (ECG) interpretation, but their opaque black-box nature creates acute clinical and liability risks. Post-hoc Counterfactual Explanations (CFEs) offer an actionable recourse paradigm by identifying minimal, physiologically authentic modifications that reverse an algorithmic diagnosis. However, classical CFE formulations relying on pointwise Euclidean ($L_1, L_2$) metrics introduce uncoordinated high-frequency noise spikes that resemble lethal fibrillatory artifacts rather than genuine cardiac conduction changes. Conversely, differentiable Soft Dynamic Time Warping (Soft-DTW) methods suffer from an $\mathcal{O}(I \cdot K \cdot T^2)$ computational trellis bottleneck and collapse to 20--50\% validity on multi-class multivariate benchmarks, while generative density models (e.g., GDFO) suffer catastrophic validity collapse (4\%) due to latent-space disconnection.
 
-To resolve this trilemma, we present \textbf{SPARCE} (\textbf{S}aliency-guided \textbf{P}rototype-\textbf{A}ligned \textbf{R}efinement for \textbf{C}ounterfactual \textbf{E}xplanations), a novel optimization architecture tailored for both univariate heartbeats and high-dimensional 12-lead multivariate ECG telemetry. SPARCE introduces four foundational innovations: (1)~\textit{Prototype warm-starting} via convex blending with the Nearest Unlike Neighbor ($\text{NUN}$) to initialize directly adjacent to the target decision boundary; (2)~\textit{Channel-selective learnable saliency gating} that isolates perturbations exclusively to diagnostic leads while freezing physiological background leads; (3)~\textit{Two-phase curriculum optimization} that decouples aggressive boundary crossing from subsequent morphological refinement; and (4)~\textit{Cross-channel covariance matrix penalization} that strictly preserves inter-lead electrophysiological coupling constraints (e.g., Einthoven's and Goldberger's laws). 
+To resolve this trilemma, we present \textbf{SPARCE} (\textbf{S}aliency-guided \textbf{P}rototype-\textbf{A}ligned \textbf{R}efinement for \textbf{C}ounterfactual \textbf{E}xplanations), an optimization architecture tailored for univariate heartbeats and 12-lead multivariate clinical telemetry. SPARCE introduces four foundational innovations: (1)~\textit{Prototype warm-starting} via convex blending with the Nearest Unlike Neighbor ($\text{NUN}$) to initialize directly adjacent to the target decision boundary; (2)~\textit{Channel-selective learnable saliency gating} that isolates perturbations exclusively to diagnostic leads while freezing physiological baseline leads; (3)~\textit{Two-phase curriculum optimization} that decouples aggressive boundary crossing from subsequent morphological refinement; and (4)~\textit{Cross-channel covariance matrix penalization} that preserves inter-lead electrophysiological vector loops (e.g., Einthoven's and Goldberger's laws). 
 
-We conduct an exhaustive benchmark evaluating SPARCE against four competing paradigms—Soft-DTW gradient descent, GDFO generative density optimization, M-CELS heuristic subsequence substitution, and DTW-CFE evolutionary CMA-ES constrained deformation—across two univariate benchmarks (UCR ECG5000, $T=140, C=5$; TwoLeadECG, $T=82, C=2$), real-world 12-lead multivariate clinical ECGs (PhysioNet PTB-XL, $d=12, T=250, C=2$), and five diverse UEA multivariate datasets (Epilepsy, BasicMotions, ERing, RacketSports, NATOPS). SPARCE demonstrates decisive empirical superiority, achieving up to 100\% validity on challenging multivariate benchmarks where baseline Soft-DTW achieves only 20\%, reducing DTW distortion by up to 35.8\%, preserving 1.000 Isolation Forest nominality, and maintaining authentic ST-segment and QRS complex electrophysiology without non-causal phase artifacts.
+We conduct an exhaustive benchmark evaluating SPARCE against Soft-DTW gradient descent, GDFO generative density optimization, M-CELS heuristic subsequence substitution, and DTW-CFE evolutionary CMA-ES deformation across two univariate benchmarks (ECG5000, TwoLeadECG), real-world 12-lead clinical ECGs (PTB-XL, $d=12$), and five diverse UEA multivariate datasets (Epilepsy, BasicMotions, ERing, RacketSports, NATOPS). SPARCE demonstrates decisive empirical superiority, achieving up to 100\% validity on benchmarks where baseline Soft-DTW achieves only 20\%, reducing DTW distortion by up to 48.1\% on 12-lead ECGs (956.9 vs. 1842.5), maintaining 1.000 Isolation Forest nominality, and strictly preserving electrophysiological conduction integrity.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Counterfactual Explanations, Explainable AI (XAI), Electrocardiogram (ECG), Soft Dynamic Time Warping, Saliency Masking, Multivariate Time Series, Prototype Learning, Clinical Decision Support.
+Counterfactual Explanations, Explainable AI (XAI), Electrocardiogram (ECG), Soft Dynamic Time Warping, Saliency Masking, Multivariate Time Series, Clinical Decision Support.
 \end{IEEEkeywords}
 
 % ==============================================================================
 % 1. INTRODUCTION
 % ==============================================================================
 \section{Introduction}
-\IEEEPARSTART{E}{lectrocardiogram} (ECG) telemetry is the cornerstone of non-invasive cardiovascular diagnostics, recording the spatio-temporal depolarization and repolarization waveforms of myocardial tissue. In recent years, deep learning models—particularly One-Dimensional Convolutional Neural Networks (1D-CNNs), Residual Networks (ResNets), and Temporal Transformers—have matched or exceeded human board-certified cardiologists in detecting arrhythmias, myocardial infarction (MI), and conduction abnormalities across public benchmarks \cite{ismail2019deep, rajpurkar2017cardiologist, strodthoff2020deep}. 
+\IEEEPARSTART{E}{lectrocardiogram} (ECG) telemetry is the primary non-invasive modality for monitoring cardiac electrophysiology. Modern deep learning models—including 1D Convolutional Neural Networks (1D-CNNs), Residual Networks (ResNets), and Temporal Transformers—regularly match or exceed board-certified cardiologists in detecting arrhythmias, myocardial infarction (MI), and conduction abnormalities across multi-lead recordings \cite{ismail2019deep, rajpurkar2017cardiologist, strodthoff2020deep}. 
 
-Despite their empirical accuracy, deep neural classifiers operate as highly non-linear, opaque transfer functions. In clinical intensive care units (ICUs) and emergency cardiology, deploying automated black-box diagnostics without intelligible reasoning poses grave patient safety risks and ethical hazards. Clinicians cannot ethically base therapeutic interventions—such as immediate catheterization or thrombolytic administration—on an uninterpretable probability score \cite{guidotti2018survey, caruana2015intelligible}.
+Despite high empirical accuracy, deep neural classifiers operate as opaque, non-linear black boxes. In emergency triage and coronary care units, deploying automated black-box diagnostics without intelligible reasoning poses grave patient safety risks and ethical hazards. Clinicians cannot justify invasive interventions—such as immediate catheterization—on an uninterpretable probability score \cite{guidotti2018survey, caruana2015intelligible}.
 
-\subsection{Shortcomings of Saliency-Based Explainability}
-Initial efforts to interpret time-series deep models relied on feature attribution methodologies, including Gradient Saliency, Class Activation Mapping (Grad-CAM), and Temporal SHAP \cite{selvaraju2017grad, lundberg2017unified, assaf2019explainable}. Although these heatmaps identify temporal segments correlated with a decision, they exhibit fundamental clinical limitations:
-\begin{enumerate}
-    \item \textbf{Lack of Actionable Recourse}: Identifying that a patient's elevated ST-segment contributed to a prediction of acute myocardial infarction does not indicate what specific morphological alterations would restore the trace to normal sinus rhythm.
-    \item \textbf{Susceptibility to Spurious Correlations}: Saliency gradients frequently concentrate on baseline drift, electrode motion artifacts, or patient-specific anatomical noise rather than pathophysiological features \cite{adebayo2018sanity}.
-    \item \textbf{Failure to Test Causal Hypotheses}: Attribution methods cannot answer the essential clinical question: \textit{"What is the minimal, biologically authentic electrophysiological change that would reverse this diagnosis?"}
-\end{enumerate}
-
-\subsection{The Counterfactual Explanations (CFE) Paradigm}
-Counterfactual explanations, originally formalized by Wachter et al. \cite{wachter2017counterfactual}, provide actionable, causal recourse. Formally, given a multi-channel time-series query $X \in \R^{d \times T}$ assigned an initial prediction $f(X) = y$, a counterfactual explanation $X^* \in \R^{d \times T}$ satisfies:
-\begin{equation}
-    f(X^*) = y^* \quad (y^* \neq y)
-\end{equation}
-such that the perturbation distance $\mathcal{D}(X, X^*)$ is strictly minimized under a domain-appropriate metric. 
-
-While CFE generation is well-studied for static tabular records and 2D vision tasks, temporal electrophysiology imposes rigorous physical and mathematical constraints:
-\begin{itemize}
-    \item \textbf{Temporal Non-Linearity and Phase Invariance}: Cardiac cycles undergo physiological heart-rate variability (HRV), causing temporal stretching and compression of PR and QT intervals. Classical pointwise Euclidean distance metrics ($L_1, L_2$) assume rigid point-to-point temporal alignment. As illustrated in Fig.~\ref{fig:paradigm_comparison}, an optimizer guided purely by Euclidean distance penalizes temporal phase shifts identically to amplitude spikes; consequently, it refuses to slide an existing waveform and instead synthesizes unphysical high-frequency oscillatory noise that resembles ventricular flutter.
-    \item \textbf{Spatial Lead Coupling in 12-Lead Systems}: In 12-lead ECG telemetry (Leads I, II, III, aVR, aVL, aVF, V1--V6), channels are physically coupled by volume conduction through the thorax. Unconstrained channel perturbation destroys fundamental electrophysiological relationships (e.g., Einthoven's Law: $\text{Lead I} + \text{Lead III} = \text{Lead II}$), producing physically impossible electrical vector loops \cite{kashou2021einthoven}.
-    \item \textbf{The Validity--Plausibility--Efficiency Trilemma}:
-    Recent advances such as differentiable Soft-DTW CFE \cite{kostrzewa2026softdtw} incorporate soft Dynamic Time Warping into the objective function to encourage morphological alignment with target prototypes. However, Soft-DTW requires constructing a dynamic programming trellis of size $T \times T$ for each target prototype at every optimization step, yielding an intractable computational complexity of $\mathcal{O}(I \cdot K \cdot T^2)$. Furthermore, on multivariate datasets with multiple classes, Soft-DTW exhibits severe validity degradation (dropping to 20--50\% target validity). Conversely, generative density models (such as GDFO \cite{crabb2024gdfo}) suffer from near-zero validity due to latent space disconnect, while greedy subsequence replacement methods (such as M-CELS \cite{ates2021counterfactual}) create harsh, non-differentiable splice discontinuities.
-\end{itemize}
-
-% ==============================================================================
-% TIKZ FIGURE 1: PARADIGM COMPARISON
-% ==============================================================================
+% ── TIKZ FIG 1: TAXONOMY (COMPACT TWO-COLUMN BANNER) ────────────────────────
 \begin{figure*}[!t]
 \centering
 \begin{tikzpicture}[
-    box/.style={rectangle, draw=black!70, thick, rounded corners=3pt, fill=blue!5, text width=3.8cm, minimum height=2.6cm, align=center, font=\small},
-    failbox/.style={rectangle, draw=red!70, thick, rounded corners=3pt, fill=red!5, text width=3.8cm, minimum height=2.6cm, align=center, font=\small},
-    winbox/.style={rectangle, draw=green!60!black, very thick, rounded corners=3pt, fill=green!5, text width=3.8cm, minimum height=2.6cm, align=center, font=\small},
-    arrow/.style={-{Stealth[scale=1.0]}, thick, color=black!70}
+    box/.style={rectangle, draw=black!70, thick, rounded corners=3pt, fill=blue!4, text width=4.1cm, minimum height=1.65cm, align=center, font=\scriptsize, inner sep=3pt},
+    failbox/.style={rectangle, draw=red!70, thick, rounded corners=3pt, fill=red!4, text width=4.1cm, minimum height=1.65cm, align=center, font=\scriptsize, inner sep=3pt},
+    winbox/.style={rectangle, draw=green!60!black, very thick, rounded corners=3pt, fill=green!5, text width=4.1cm, minimum height=1.65cm, align=center, font=\scriptsize, inner sep=3pt}
 ]
-
 \node[box] (softdtw) at (0, 0) {
-    \textbf{(A) Soft-DTW CFE}\\
-    \textit{Unconstrained GD}\\
-    \vspace{2pt}
-    \hrule\vspace{3pt}
+    \textbf{(A) Soft-DTW CFE (Unconstrained GD)}\\
     $\min_{X'} \mathcal{L}_{\text{valid}} + \lambda_{\text{dtw}}\text{SoftDTW}$\\
-    $\bullet$ Retains DP trellis in inner loop\\
-    $\bullet$ Complexity: $\mathcal{O}(I \cdot K \cdot T^2)$\\
-    \textcolor{orange!80!black}{\textbf{Low Validity on Multivar}}
+    $\bullet$ Quadratic DP Trellis: $\mathcal{O}(I \cdot K \cdot T^2)$\\
+    \textcolor{orange!85!black}{\textbf{Bottleneck \& Validity Collapse on Multivar}}
 };
-
-\node[failbox] (gdfo) at (4.5, 0) {
-    \textbf{(B) GDFO (VAE+GMM)}\\
-    \textit{Latent Space Density}\\
-    \vspace{2pt}
-    \hrule\vspace{3pt}
+\node[failbox] (gdfo) at (4.65, 0) {
+    \textbf{(B) GDFO (VAE+GMM Latent Density)}\\
     $\min_{z} \mathcal{L}_{\text{valid}} + \mathcal{L}_{\text{GMM}} + \mathcal{L}_{\text{DTW}}$\\
-    $\bullet$ Optimizes in latent space $z$\\
-    $\bullet$ Density prior overpowers logits\\
-    \textcolor{red!80!black}{\textbf{Near-Zero Validity ($4\%$)}}
+    $\bullet$ Latent density prior overpowers logits\\
+    \textcolor{red!85!black}{\textbf{Catastrophic Validity Failure ($4\%$)}}
 };
-
-\node[box] (mcels) at (9.0, 0) {
-    \textbf{(C) M-CELS}\\
-    \textit{Greedy Subsequence Splice}\\
-    \vspace{2pt}
-    \hrule\vspace{3pt}
+\node[box] (mcels) at (9.3, 0) {
+    \textbf{(C) M-CELS (Heuristic Subsequence)}\\
     $\text{Replace } X[t_1:t_2] \leftarrow \text{NUN}[t_1:t_2]$\\
-    $\bullet$ Saliency-guided patch copy\\
-    $\bullet$ Ultra-fast ($0.01$ s/sample)\\
-    \textcolor{red!70!black}{\textbf{Severe Splice Discontinuities}}
+    $\bullet$ Saliency patch copy ($0.01$ s/sample)\\
+    \textcolor{red!75!black}{\textbf{Severe Splice Discontinuities at Boundary}}
 };
-
-\node[winbox] (sparce) at (13.5, 0) {
-    \textbf{(D) SPARCE (Ours)}\\
-    \textit{Prototype + Saliency Curriculum}\\
-    \vspace{2pt}
-    \hrule\vspace{3pt}
+\node[winbox] (sparce) at (13.95, 0) {
+    \textbf{(D) SPARCE (Proposed Framework)}\\
     $\alpha$-NUN Warm-Start + Learnable Mask\\
-    $\bullet$ Two-phase curriculum schedule\\
-    $\bullet$ Cross-channel covariance loss\\
-    \textcolor{green!60!black}{\textbf{100\% Validity + Plausibility}}
+    $\bullet$ Two-phase curriculum + Covariance loss\\
+    \textcolor{green!60!black}{\textbf{Optimal Validity + Plausibility + 1.000 IF}}
 };
-
 \end{tikzpicture}
-\caption{Conceptual taxonomy of time-series counterfactual paradigms. (A) Unconstrained Soft-DTW gradient descent suffers from quadratic dynamic programming latency and validity collapse in multi-class setups. (B) GDFO's generative density prior traps optimization, resulting in catastrophic validity failure. (C) M-CELS achieves fast heuristic validity but produces severe boundary discontinuities. (D) SPARCE resolves all failure modes through prototype warm-start, channel gating, two-phase curriculum scheduling, and covariance constraints.}
+\caption{Conceptual taxonomy of time-series counterfactual paradigms. (A) Unconstrained Soft-DTW gradient descent suffers from dynamic programming latency and validity collapse in multi-class setups. (B) GDFO traps optimization in latent modes, yielding near-zero validity. (C) M-CELS achieves heuristic validity but creates severe splice boundary jumps. (D) SPARCE resolves all failure modes through prototype warm-start, channel gating, two-phase curriculum scheduling, and cross-channel covariance constraints.}
 \label{fig:paradigm_comparison}
 \end{figure*}
 
-\subsection{Contributions of this Work}
-To overcome these fundamental challenges, we introduce \textbf{SPARCE} (\textbf{S}aliency-guided \textbf{P}rototype-\textbf{A}ligned \textbf{R}efinement for \textbf{C}ounterfactual \textbf{E}xplanations) and systematically evaluate its performance across the clinical cardiology domain. Specifically, our contributions are as follows:
+\subsection{Shortcomings of Saliency-Based Explainability}
+Initial XAI techniques for time series adapted feature attribution methods, including Gradient Saliency, Grad-CAM, and Temporal SHAP \cite{selvaraju2017grad, lundberg2017unified, assaf2019explainable}. Although these heatmaps highlight temporal segments correlated with a decision, they exhibit fundamental clinical limitations:
 \begin{enumerate}
-    \item \textbf{A Novel Multi-Objective Optimization Architecture}: We formalize SPARCE, integrating prototype warm-starting via Nearest Unlike Neighbor ($\text{NUN}$) interpolation, learnable channel-selective saliency gating, two-phase curriculum scheduling, and cross-channel covariance penalization.
-    \item \textbf{Electrophysiologically Constrained Formulations}: We incorporate spatial cross-channel covariance matching to preserve inter-lead dipole geometry in 12-lead ECGs, preventing unphysical independent lead perturbations.
-    \item \textbf{Exhaustive Benchmark Evaluation on ECG Telemetry}: We benchmark SPARCE against four state-of-the-art counterfactual algorithms (Soft-DTW, GDFO, M-CELS, DTW-CFE) across two univariate heartbeat datasets (UCR ECG5000 and TwoLeadECG) and the benchmark PhysioNet PTB-XL 12-lead clinical ECG dataset.
-    \item \textbf{Generalization Across Diverse Sensor Modalities}: We validate SPARCE across five diverse UEA multivariate benchmarks (Epilepsy, BasicMotions, ERing, RacketSports, NATOPS), proving that SPARCE's architectural principles generalize beyond cardiology to generic multivariate temporal systems.
-    \item \textbf{Multi-Metric Analytical Validation}: We evaluate generated counterfactuals across six orthogonal axes: Target Validity ($Val$), Proximity ($L_1, L_2$), DTW Morphological Plausibility ($DTW$), In-Distribution Nominal Realism (Isolation Forest $IF$), and Computational Runtime Latency.
+    \item \textbf{Lack of Actionability}: Highlighting an elevated ST-segment indicates where a model looked, but does not indicate what specific morphological alterations would restore normal sinus rhythm.
+    \item \textbf{Susceptibility to Artifacts}: Saliency gradients frequently concentrate on baseline wander, electrode motion, or muscle tremor rather than true pathophysiological markers \cite{adebayo2018sanity}.
+    \item \textbf{Failure to Test Causal Recourse}: Feature attribution cannot answer: \textit{"What is the minimal, biologically authentic electrophysiological change that would reverse this diagnosis?"}
+\end{enumerate}
+
+\subsection{The Counterfactual Recourse Paradigm in Cardiology}
+Counterfactual explanations (CFEs) resolve these limitations by identifying the minimal perturbation required to reverse a model's prediction \cite{wachter2017counterfactual}. Given a multi-channel query $X \in \R^{d \times T}$ assigned prediction $f(X) = y$, a counterfactual $X^* \in \R^{d \times T}$ satisfies $f(X^*) = y^*$ ($y^* \neq y$) while minimizing perturbation distance $\mathcal{D}(X, X^*)$. 
+
+In temporal electrophysiology, generating faithful counterfactuals requires honoring strict physical and biological constraints:
+\begin{itemize}
+    \item \textbf{Temporal Non-Linearity \& Phase Invariance}: Cardiac cycles undergo physiological heart-rate variability (HRV), stretching and contracting PR, QRS, and QT intervals. Pointwise Euclidean metrics ($L_1, L_2$) enforce rigid point-to-point temporal alignment. As shown in Fig.~\ref{fig:paradigm_comparison}, Euclidean optimizers cannot shift waveforms in time; instead, they cancel out existing peaks and synthesize new peaks, producing high-frequency oscillatory noise that mimics ventricular flutter.
+    \item \textbf{Spatial Coupling in 12-Lead Systems}: Standard 12-lead ECGs record projections of a single 3D cardiac electrical vector onto frontal and horizontal planes. Kirchhoff's and Einthoven's laws ($\text{Lead I} + \text{Lead III} = \text{Lead II}$) dictate that leads cannot fluctuate independently. Uncoordinated channel perturbation produces physically impossible vector loops \cite{kashou2021einthoven}.
+    \item \textbf{The Validity--Plausibility--Latency Trilemma}: Differentiable Soft-DTW \cite{kostrzewa2026softdtw} incorporates dynamic time warping into gradient-based CFE loss functions. However, calculating the dynamic programming (DP) trellis against target prototypes incurs an $\mathcal{O}(I \cdot K \cdot T^2)$ complexity. Furthermore, in multi-class multivariate settings, Soft-DTW suffers from severe validity collapse (20--50\% validity). Conversely, generative density models (GDFO \cite{crabb2024gdfo}) collapse to near-zero validity (4\%), while heuristic subsequence replacement (M-CELS \cite{ates2021counterfactual}) creates harsh, non-differentiable step discontinuities.
+\end{itemize}
+
+\subsection{Contributions of this Work}
+To overcome these challenges, we introduce \textbf{SPARCE} (\textbf{S}aliency-guided \textbf{P}rototype-\textbf{A}ligned \textbf{R}efinement for \textbf{C}ounterfactual \textbf{E}xplanations):
+\begin{enumerate}
+    \item \textbf{Multi-Objective Optimization Architecture}: We formalize SPARCE, integrating prototype warm-starting via Nearest Unlike Neighbor ($\text{NUN}$) interpolation, learnable channel saliency gating, two-phase curriculum scheduling, and cross-channel covariance penalization.
+    \item \textbf{Electrophysiologically Constrained Lead Coupling}: We incorporate spatial covariance matching to preserve inter-lead dipole geometry in 12-lead ECGs, preventing unphysical independent lead perturbations.
+    \item \textbf{Comprehensive Evaluation on ECG Telemetry}: We benchmark SPARCE against four competing paradigms (Soft-DTW, GDFO, M-CELS, DTW-CFE) across two univariate heartbeat datasets (ECG5000, TwoLeadECG) and the benchmark PhysioNet PTB-XL 12-lead clinical ECG dataset.
+    \item \textbf{Cross-Domain Generalization}: We validate SPARCE across five diverse UEA multivariate benchmarks (Epilepsy, BasicMotions, ERing, RacketSports, NATOPS), proving generalizability across sensor modalities.
 \end{enumerate}
 
 % ==============================================================================
@@ -167,83 +145,70 @@ To overcome these fundamental challenges, we introduce \textbf{SPARCE} (\textbf{
 % ==============================================================================
 \section{Related Work \& Mathematical Foundations}
 
-\subsection{Time Series Classification (TSC) Architectures}
-Let a multivariate temporal sequence be denoted by $X \in \R^{d \times T}$, where $d$ represents the number of spatial or sensor channels (leads) and $T$ represents the sequence length. A deep classification model $f: \R^{d \times T} \to \Delta^{C-1}$ maps the input sequence to a probability simplex over $C$ target diagnostic classes. Modern TSC networks employ 1D convolutions with dilated receptive fields, batch normalization, and global pooling layers to achieve translation invariance \cite{ismail2019deep}. In this work, we utilize deep 1D-CNN architectures with Global Average Pooling (GAP), parameterized by weights $\mathbf{W}$, ensuring smooth gradient backpropagation for gradient-based recourse.
+\subsection{Time Series Classification Architectures}
+Let a multivariate temporal sequence be $X \in \R^{d \times T}$, where $d$ is the number of channels (leads) and $T$ is sequence length. A classifier $f: \R^{d \times T} \to \Delta^{C-1}$ maps the input sequence to class probabilities. We employ deep 1D-CNN architectures with Global Average Pooling (GAP) \cite{ismail2019deep}, ensuring smooth gradient flow for gradient-based recourse.
 
 \subsection{Pointwise vs. Elastic Alignment: Dynamic Time Warping}
-Classical Dynamic Time Warping (DTW) calculates the optimal non-linear temporal alignment between two sequences $X = [x_1, \dots, x_T]$ and $Y = [y_1, \dots, y_T]$ by finding a path $\pi = \{ (i_k, j_k) \}_{k=1}^K$ in a $T \times T$ distance grid that minimizes cumulative alignment cost:
+Classical Dynamic Time Warping (DTW) calculates optimal non-linear temporal alignment between sequences $X$ and $Y$ by finding an alignment path $\pi = \{ (i_k, j_k) \}$ in a $T \times T$ distance grid:
 \begin{equation}
-    \text{DTW}(X, Y) = \min_{\pi \in \mathcal{A}(X, Y)} \sum_{(i, j) \in \pi} \delta(x_i, y_j)
+    \text{DTW}(X, Y) = \min_{\pi \in \mathcal{A}(X, Y)} \sum_{(i, j) \in \pi} \norm{x_i - y_j}_2^2
 \end{equation}
-subject to boundary, monotonicity, and continuity constraints, where $\delta(x_i, y_j) = \norm{x_i - y_j}_2^2$.
+subject to boundary, monotonicity, and step-size continuity constraints.
 
-Because the discrete $\min$ operator is non-differentiable, Cuturi and Blondel \cite{cuturi2017soft} formulated \textbf{Soft-DTW}, replacing the hard minimum with a smoothed log-sum-exp operator parameterized by smoothing temperature $\gamma > 0$:
+Because the discrete $\min$ operator is non-differentiable, Soft-DTW \cite{cuturi2017soft} replaces it with a smoothed log-sum-exp operator with temperature $\gamma > 0$:
 \begin{equation}
     \min\nolimits^\gamma \{a_1, \dots, a_m\} = -\gamma \ln \sum_{i=1}^m \exp(-a_i / \gamma)
 \end{equation}
 The continuous soft alignment matrix $D \in \R^{(T+1) \times (T+1)}$ is recursively populated:
 \begin{equation}
-    D_{i,j} = \delta(x_i, y_j) + \min\nolimits^\gamma \left\{ D_{i-1, j}, D_{i, j-1}, D_{i-1, j-1} \right\}
+    D_{i,j} = \norm{x_i - y_j}_2^2 + \min\nolimits^\gamma \left\{ D_{i-1, j}, D_{i, j-1}, D_{i-1, j-1} \right\}
 \end{equation}
-Soft-DTW provides continuous subgradients $\nabla_X \text{SoftDTW}_\gamma(X, Y)$, enabling backpropagation directly through temporal dynamic programming trellises. Kostrzewa et al. \cite{kostrzewa2026softdtw} harnessed this property for counterfactual explanations. However, evaluating Soft-DTW against $K$ target-class reference samples incurs an asymptotic complexity of $\mathcal{O}(I \cdot K \cdot T^2)$, creating an extreme bottleneck for long clinical sequences.
+Soft-DTW provides continuous subgradients $\nabla_X \text{SoftDTW}_\gamma(X, Y)$, enabling backpropagation directly through temporal dynamic programming trellises \cite{kostrzewa2026softdtw}. However, evaluating Soft-DTW against $K$ target-class reference samples incurs an asymptotic complexity of $\mathcal{O}(I \cdot K \cdot T^2)$, creating an extreme bottleneck for long clinical sequences.
 
-\subsection{Generative and Subsequence Baselines}
-\textbf{GDFO} (Generative Density Function Optimization) \cite{crabb2024gdfo} attempts to guarantee counterfactual realism by training a Variational Autoencoder (VAE) coupled with a Gaussian Mixture Model (GMM) density estimator in the latent space $\mathcal{Z}$. The counterfactual is generated by optimizing in latent space:
-\begin{equation}
-    z^* = \argmin_z \mathcal{L}_{\text{valid}}(g(z)) + \lambda_{\text{dens}} \mathcal{L}_{\text{GMM}}(z) + \lambda_{\text{dtw}} \text{SoftDTW}(g(z), Y)
-\end{equation}
-where $g: \mathcal{Z} \to \R^{d \times T}$ is the trained decoder. However, on multi-class time-series datasets, the latent density prior $\mathcal{L}_{\text{GMM}}$ consistently dominates gradient flow, causing the optimization to settle into local density modes that fail to cross the classifier's decision boundary (yielding near-zero validity).
-
-\textbf{M-CELS} (Multi-Channel Counterfactual Explanations by Local Subsequences) \cite{ates2021counterfactual} adopts a heuristic subsequence substitution strategy. It identifies the Nearest Unlike Neighbor ($\text{NUN}$) from the target class, ranks channels and temporal intervals using gradient attribution, and copies subsegments of $\text{NUN}$ directly into $X$. While computationally negligible ($< 0.05$ s/sample), M-CELS produces severe boundary discontinuities at splice junctions, violating the differential continuity required by physical cardiac conduction.
-
-% ==============================================================================
-% TIKZ FIGURE 2: DETAILED SPARCE FLOWCHART
-% ==============================================================================
+% ── TIKZ FIG 2: COMPACT FLOWCHART ────────────────────────────────────────────
 \begin{figure*}[!t]
 \centering
 \begin{tikzpicture}[
-    node distance=1.2cm and 1.0cm,
-    every node/.style={font=\footnotesize},
-    block/.style={rectangle, draw=black!80, thick, fill=blue!8, rounded corners=4pt, text width=3.2cm, align=center, minimum height=1.1cm},
-    action/.style={rectangle, draw=cyan!80!black, thick, fill=cyan!10, rounded corners=4pt, text width=3.4cm, align=center, minimum height=1.1cm},
-    decision/.style={diamond, draw=orange!90!black, thick, fill=orange!15, aspect=2.0, text width=2.4cm, align=center, inner sep=1pt},
-    phasebox/.style={rectangle, draw=purple!70!black, dashed, thick, rounded corners=6pt, fill=purple!3, inner sep=8pt},
-    line/.style={draw=black!70, -{Stealth[scale=1.1]}, thick}
+    node distance=0.45cm and 0.65cm,
+    every node/.style={font=\scriptsize},
+    block/.style={rectangle, draw=black!80, thick, fill=blue!6, rounded corners=3pt, text width=3.3cm, align=center, minimum height=0.75cm, inner sep=3pt},
+    action/.style={rectangle, draw=cyan!80!black, thick, fill=cyan!8, rounded corners=3pt, text width=3.3cm, align=center, minimum height=0.75cm, inner sep=3pt},
+    decision/.style={diamond, draw=orange!90!black, thick, fill=orange!12, aspect=1.8, text width=2.0cm, align=center, inner sep=1pt},
+    phasebox/.style={rectangle, draw=purple!70!black, dashed, thick, rounded corners=4pt, fill=purple!2, inner sep=5pt},
+    line/.style={draw=black!70, -{Stealth[scale=0.9]}, thick}
 ]
 
-% Inputs
-\node[block, fill=gray!15] (inputX) {\textbf{Query ECG} $X \in \R^{d \times T}$\\Initial Prediction $f(X) = y$};
-\node[block, fill=gray!15, right=1.2cm of inputX] (nunSearch) {\textbf{Target Exemplar Search}\\Extract $K$ Prototypes $\{Y_k\}_{k=1}^K$\\$\text{NUN} \in \mathcal{D}_{y^*}$ via DTW distance};
+% Top Inputs
+\node[block, fill=gray!12] (inputX) {\textbf{Query ECG} $X \in \R^{d \times T}$\\$f(X) = y_{\text{orig}}$};
+\node[block, fill=gray!12, right=1.2cm of inputX] (nunSearch) {\textbf{Target Exemplar Search}\\Extract $K$ Prototypes $\{Y_k\} \subset \mathcal{D}_{y^*}$\\$\text{NUN} \leftarrow \argmin \text{DTW}(X, Y)$};
 
-% Warm start & Saliency
-\node[action, below=0.9cm of inputX] (saliency) {\textbf{Saliency Gating}\\Compute $\nabla_X \mathcal{L}_{\text{CE}}(f(X), y^*)$\\Init Learnable Mask $M = \sigma(\theta_M)$};
-\node[action, below=0.9cm of nunSearch] (warmstart) {\textbf{Prototype Warm-Start}\\$X_0 = \alpha X + (1-\alpha) \text{NUN}$\\Starts at decision boundary};
+% Second Row
+\node[action, below=0.45cm of inputX] (saliency) {\textbf{Saliency Gating}\\$S = |\nabla_X \mathcal{L}_{\text{CE}}|$\\Mask $M = \sigma(\theta_M / \tau_M)$};
+\node[action, below=0.45cm of nunSearch] (warmstart) {\textbf{Prototype Warm-Start}\\$X_0 = \alpha X + (1-\alpha) \text{NUN}$\\Starts adjacent to boundary};
 
-% Merge into Phase 1
-\node[block, fill=purple!15, below=2.6cm of $(inputX)!0.5!(nunSearch)$] (phase1) {
-    \textbf{Phase 1: Validity Optimization}\\
-    \textit{Aggressive Boundary Crossing}\\
-    $\mathcal{L}_{\text{P1}} = \lambda_v^{(1)} \mathcal{L}_{\text{valid}} + \mathcal{L}_{\text{prox}} + \mathcal{L}_{\text{sparse}} + \lambda_{\text{cov}}\mathcal{L}_{\text{cov}}$\\
-    Learning rate $\eta_1 = 0.02$, $\lambda_v^{(1)} = 5.0$
+% Phase 1
+\node[block, fill=purple!12, below=1.65cm of $(inputX)!0.5!(nunSearch)$] (phase1) {
+    \textbf{Phase 1: Aggressive Validity Optimization}\\
+    $\mathcal{L}_{\text{P1}} = 5.0 \cdot \mathcal{L}_{\text{valid}} + \mathcal{L}_{\text{prox}} + \beta \mathcal{L}_{\text{sparse}} + 0.1 \cdot \mathcal{L}_{\text{cov}}$\\
+    Adam step with $\eta_1 = 0.02$ ($I_1 = 80$ iterations)
 };
 
-% Decision check
-\node[decision, below=0.9cm of phase1] (checkvalid) {Validity\\Achieved?\\$f(X') = y^*$?};
+% Check
+\node[decision, below=0.45cm of phase1] (checkvalid) {Boundary\\Crossed?};
 
 % Phase 2
-\node[block, fill=green!15, below=0.9cm of checkvalid] (phase2) {
-    \textbf{Phase 2: Plausibility Refinement}\\
-    \textit{Morphological \& DTW Polishing}\\
-    $\mathcal{L}_{\text{P2}} = \mathcal{L}_{\text{prox}} + \mathcal{L}_{\text{sparse}} + \lambda_v^{(2)}\mathcal{L}_{\text{valid}} + \lambda_{\text{dtw}}\mathcal{L}_{\text{DTW}} + \lambda_{\text{cov}}\mathcal{L}_{\text{cov}}$\\
-    Learning rate $\eta_2 = 0.005$, $\lambda_{\text{dtw}} = 1.0$
+\node[block, fill=green!12, below=0.45cm of checkvalid] (phase2) {
+    \textbf{Phase 2: Morphological Refinement}\\
+    $\mathcal{L}_{\text{P2}} = \mathcal{L}_{\text{prox}} + \beta \mathcal{L}_{\text{sparse}} + 1.0 \cdot \mathcal{L}_{\text{valid}} + 1.0 \cdot \mathcal{L}_{\text{DTW}} + 0.1 \cdot \mathcal{L}_{\text{cov}}$\\
+    Adam step with $\eta_2 = 0.005$ ($I_2 = 120$ iterations)
 };
 
-% Final Output
-\node[block, fill=green!25, right=1.5cm of phase2] (outputCF) {
-    \textbf{Optimal Counterfactual $X^*$}\\
-    $\bullet$ Target Validity Confirmed\\
-    $\bullet$ Minimal Morphological DTW\\
-    $\bullet$ Preserved Inter-Lead Covariance
+% Output
+\node[block, fill=green!20, right=1.4cm of phase2] (outputCF) {
+    \textbf{Optimal CFE $X^*$}\\
+    $\bullet$ Valid class flip $f(X^*) = y^*$\\
+    $\bullet$ Minimal Soft-DTW distortion\\
+    $\bullet$ Preserved lead covariance
 };
 
 % Connectors
@@ -253,118 +218,95 @@ where $g: \mathcal{Z} \to \R^{d \times T}$ is the trained decoder. However, on m
 \path[line] (saliency) -- (phase1);
 \path[line] (warmstart) -- (phase1);
 \path[line] (phase1) -- (checkvalid);
-\path[line] (checkvalid) -- node[left] {Yes (Iter $\ge I_1$)} (phase2);
-\path[line] (checkvalid.west) -- ++(-0.8,0) node[above, text width=1.5cm] {No (Step)} |- (phase1.west);
+\path[line] (checkvalid) -- node[left] {Yes ($i \ge I_1$)} (phase2);
+\path[line] (checkvalid.west) -- ++(-0.6,0) node[above, font=\tiny] {Iterate} |- (phase1.west);
 \path[line] (phase2) -- (outputCF);
 
-% Background grouping
 \begin{scope}[on background layer]
-    \node[phasebox, fit=(phase1) (checkvalid) (phase2), label={[purple!80!black]above right:\textbf{Two-Phase Curriculum Framework}}] {};
+    \node[phasebox, fit=(phase1) (checkvalid) (phase2), label={[purple!80!black, font=\scriptsize]above right:\textbf{Two-Phase Curriculum Framework}}] {};
 \end{scope}
-
 \end{tikzpicture}
-\caption{Architectural flowchart of the SPARCE framework. Initialized from an electrophysiologically grounded prototype warm-start ($\alpha X + (1-\alpha)\text{NUN}$) and guided by a channel-selective saliency mask, SPARCE executes a two-phase curriculum schedule: Phase 1 prioritizes decision boundary crossing, and Phase 2 refines morphology via Soft-DTW alignment and cross-channel covariance matching.}
+\caption{Architectural flowchart of the SPARCE framework. Initialized from prototype warm-start ($\alpha X + (1-\alpha)\text{NUN}$) and guided by a channel-selective saliency mask, SPARCE executes a two-phase curriculum schedule: Phase 1 prioritizes decision boundary crossing, and Phase 2 polishes morphology via Soft-DTW and cross-channel covariance matching.}
 \label{fig:sparce_flowchart}
 \end{figure*}
+
+\subsection{Generative and Subsequence Baselines}
+\textbf{GDFO} (Generative Density Function Optimization) \cite{crabb2024gdfo} attempts to guarantee counterfactual realism by training a Variational Autoencoder (VAE) coupled with a Gaussian Mixture Model (GMM) in latent space $\mathcal{Z}$:
+\begin{equation}
+    z^* = \argmin_z \mathcal{L}_{\text{valid}}(g(z)) + \lambda_{\text{dens}} \mathcal{L}_{\text{GMM}}(z) + \lambda_{\text{dtw}} \text{SoftDTW}(g(z), Y)
+\end{equation}
+where $g: \mathcal{Z} \to \R^{d \times T}$ is the decoder. However, on multi-class time series, $\mathcal{L}_{\text{GMM}}$ consistently dominates gradient flow, trapping optimization in local density modes and yielding near-zero validity (4--10\%).
+
+\textbf{M-CELS} (Multi-Channel Subsequences) \cite{ates2021counterfactual} adopts a heuristic replacement strategy, copying subsegments of $\text{NUN}$ directly into $X$. While computationally negligible ($< 0.05$ s/sample), M-CELS produces severe boundary discontinuities at splice junctions, violating biological conduction continuity.
 
 % ==============================================================================
 % 3. THE SPARCE FRAMEWORK
 % ==============================================================================
 \section{The SPARCE Framework}
-The SPARCE optimization architecture is designed to overcome the core deficiencies of prior methods by coupling prototype initialization, learnable channel gating, curriculum scheduling, and covariance constraints into an end-to-end differentiable pipeline (Fig.~\ref{fig:sparce_flowchart}).
+The SPARCE optimization architecture (Fig.~\ref{fig:sparce_flowchart}) couples prototype initialization, learnable channel gating, curriculum scheduling, and covariance constraints into a differentiable pipeline.
 
 \subsection{Component 1: Prototype Warm-Start via NUN Interpolation}
-Gradient descent initiated from the original instance $X$ frequently becomes trapped in local non-convex saddle points of the deep classifier's loss surface. Furthermore, because $X$ lies deep within the source class region, dozens of iterations are wasted making uncoordinated steps before reaching the decision boundary.
-
-SPARCE resolves this by identifying the Nearest Unlike Neighbor from the target class training partition $\mathcal{D}_{y^*}$:
+Gradient descent initiated from $X$ frequently stalls in local non-convex saddle points far from the target decision boundary. SPARCE resolves this by identifying the Nearest Unlike Neighbor from the target class pool $\mathcal{D}_{y^*}$:
 \begin{equation}
     \text{NUN} = \argmin_{Y \in \mathcal{D}_{y^*}} \text{DTW}(X, Y)
 \end{equation}
-Instead of optimizing from $X$, SPARCE initializes the counterfactual search from a convex linear interpolation:
+Instead of optimizing from $X$, SPARCE initializes the search from a convex combination:
 \begin{equation}
     X_0 = \alpha_{\text{init}} X + (1 - \alpha_{\text{init}}) \text{NUN}
 \end{equation}
-where $\alpha_{\text{init}} \in [0.7, 0.9]$ (default $\alpha_{\text{init}} = 0.8$). This warm-start places the initial candidate adjacent to the target decision boundary while retaining the coarse phase and morphology of the original patient query.
+where $\alpha_{\text{init}} = 0.8$. This warm-start places the initial candidate adjacent to the target decision boundary while retaining the original patient's baseline morphology.
 
 \subsection{Component 2: Channel-Selective Saliency Gating}
-In multi-lead ECGs, acute pathologies manifest in localized anatomical leads (e.g., ST elevation in precordial leads V1--V4 for anterior wall infarction, with normal morphology in inferior leads II, III, and aVF). Perturbing all leads uniformly inflates proximity loss and destroys healthy physiological signals.
+In 12-lead ECGs, acute pathologies manifest in localized anatomical leads (e.g., ST elevation in precordial leads V1--V4 for anterior wall infarction, with normal morphology in inferior leads II, III, aVF). Perturbing all leads uniformly inflates proximity loss and destroys healthy signals.
 
-SPARCE computes the input gradient saliency matrix $S \in \R^{d \times T}$ with respect to the target class logit $z_{y^*}$:
+SPARCE computes gradient saliency $S = |\nabla_X z_{y^*}(f(X))|$ with respect to the target logit. We parameterize a learnable mask $M \in (0, 1)^{d \times T}$ via unconstrained logits $\theta_M \in \R^{d \times T}$:
 \begin{equation}
-    S = \left\lvert \nabla_X z_{y^*}(f(X)) \right\rvert
+    M = \sigma\left( \frac{\theta_M}{\tau_M} \right), \quad X' = X + M \odot \Delta
 \end{equation}
-We define a channel-temporal mask $M \in (0, 1)^{d \times T}$ parameterized by learnable unconstrained logits $\theta_M \in \R^{d \times T}$:
-\begin{equation}
-    M = \sigma\left( \frac{\theta_M}{\tau_M} \right)
-\end{equation}
-where $\sigma$ denotes the sigmoid activation and $\tau_M$ is a temperature hyperparameter. The counterfactual update is gated element-wise:
-\begin{equation}
-    X' = X + M \odot \Delta
-\end{equation}
-where $\Delta \in \R^{d \times T}$ is the unbounded parameter tensor. To prevent unconstrained mask growth, we penalize mask activation via an $L_1$ sparsity regularizer:
-\begin{equation}
-    \mathcal{L}_{\text{sparse}} = \frac{1}{d \cdot T} \norm{M}_1
-\end{equation}
+where $\Delta \in \R^{d \times T}$ is the unbounded parameter tensor. To enforce channel sparsity, we add an $L_1$ penalty: $\mathcal{L}_{\text{sparse}} = \frac{1}{d \cdot T} \norm{M}_1$.
 
 \subsection{Component 3: Cross-Channel Covariance Regularization}
-Independent channel perturbation in multivariate signals produces uncoordinated leads that violate physical electrodynamic laws. Let the sample channel covariance matrix of a sequence $X \in \R^{d \times T}$ be:
+Independent channel perturbation produces uncoordinated leads that violate physical electrodynamic laws. Let the sample covariance matrix of $X \in \R^{d \times T}$ be:
 \begin{equation}
     \text{Cov}(X) = \frac{1}{T - 1} \sum_{t=1}^T (X_{:, t} - \mu_X)(X_{:, t} - \mu_X)^\top \in \R^{d \times d}
 \end{equation}
-where $\mu_X = \frac{1}{T}\sum_{t=1}^T X_{:, t}$. SPARCE penalizes deviations from the baseline inter-lead correlation structure using the Frobenius norm:
+where $\mu_X = \frac{1}{T}\sum_{t=1}^T X_{:, t}$. SPARCE penalizes deviations from the baseline inter-lead correlation structure:
 \begin{equation}
-    \mathcal{L}_{\text{cov}} = \norm{\text{Cov}(X') - \text{Cov}(X)}_F^2 = \sum_{i=1}^d \sum_{j=1}^d \left( \text{Cov}(X')_{i,j} - \text{Cov}(X)_{i,j} \right)^2
+    \mathcal{L}_{\text{cov}} = \norm{\text{Cov}(X') - \text{Cov}(X)}_F^2
 \end{equation}
-This loss term forces all 12 leads to oscillate in electrophysiological harmony, preventing synthetic counterfactuals from generating contradictory vector loops.
+This term forces all 12 leads to oscillate in electrophysiological harmony, preventing synthetic counterfactuals from generating contradictory vector loops.
 
 \subsection{Component 4: Two-Phase Curriculum Scheduling}
-Standard CFE formulations employ a static weighted sum of validity, proximity, and plausibility losses. This static formulation induces conflicting gradients: when validity weight is high, proximity degrades into high-frequency noise; when DTW weight is high, the optimizer fails to cross the decision boundary.
+Standard static loss formulations induce conflicting gradients between validity and plausibility. SPARCE decouples these objectives through a two-phase curriculum:
+\begin{itemize}
+    \item \textbf{Phase 1 (Validity First, $i = 1 \dots 80$)}: The optimizer focuses aggressively on crossing the decision boundary with high validity weight ($\lambda_v^{(1)} = 5.0$) and learning rate $\eta_1 = 0.02$:
+    \begin{equation}
+        \mathcal{L}_{\text{P1}} = 5.0 \cdot \mathcal{L}_{\text{valid}}(X') + \mathcal{L}_{\text{prox}}(X', X) + \beta \mathcal{L}_{\text{sparse}} + 0.1 \cdot \mathcal{L}_{\text{cov}}
+    \end{equation}
+    where $\mathcal{L}_{\text{valid}}(X') = \max(0, 0.5 - p_f(y^* \mid X'))$ is a margin hinge loss.
+    \item \textbf{Phase 2 (Morphological Refinement, $i = 81 \dots 200$)}: Validity weight is lowered ($\lambda_v^{(2)} = 1.0$) while Soft-DTW plausibility weight is engaged ($\lambda_{\text{dtw}}^{(2)} = 1.0$) with fine-tuning rate $\eta_2 = 0.005$:
+    \begin{align}
+        \mathcal{L}_{\text{P2}} = \mathcal{L}_{\text{prox}}(X', X) &+ \beta \mathcal{L}_{\text{sparse}} + 1.0 \cdot \mathcal{L}_{\text{valid}}(X') \nonumber \\
+        &+ 1.0 \cdot \mathcal{L}_{\text{DTW}}(X', \mathcal{Y}^*) + 0.1 \cdot \mathcal{L}_{\text{cov}}
+    \end{align}
+\end{itemize}
 
-SPARCE decouples these objectives through a \textbf{two-phase curriculum schedule}:
-\subsubsection{Phase 1 (Validity First, $i = 1 \dots I_1$)}
-The optimizer focuses aggressively on crossing the decision boundary into the target class cone. Soft-DTW alignment is kept minimal ($\lambda_{\text{dtw}}^{(1)} = 0.1$) to avoid premature trapping:
-\begin{equation}
-    \mathcal{L}_{\text{P1}} = \lambda_v^{(1)} \mathcal{L}_{\text{valid}}(X') + \mathcal{L}_{\text{prox}}(X', X) + \beta \mathcal{L}_{\text{sparse}} + \lambda_{\text{cov}} \mathcal{L}_{\text{cov}}
-\end{equation}
-where $\mathcal{L}_{\text{valid}}(X') = \max(0, \tau - p_f(y^* \mid X'))$ is a margin-based hinge loss with threshold $\tau = 0.5$, $\lambda_v^{(1)} = 5.0$, and learning rate $\eta_1 = 0.02$.
+Algorithm~\ref{alg:sparce} summarizes the end-to-end execution.
 
-\subsubsection{Phase 2 (Morphological Refinement, $i = I_1+1 \dots I_1+I_2$)}
-Once validity is established, the optimizer shifts priority to plausibility and smooth alignment. The validity weight is reduced to a maintenance level ($\lambda_v^{(2)} = 1.0$), while the Soft-DTW plausibility weight is increased tenfold ($\lambda_{\text{dtw}}^{(2)} = 1.0$) with a refined learning rate $\eta_2 = 0.005$:
-\begin{align}
-    \mathcal{L}_{\text{P2}} = \mathcal{L}_{\text{prox}}(X', X) &+ \beta \mathcal{L}_{\text{sparse}} + \lambda_v^{(2)} \mathcal{L}_{\text{valid}}(X') \nonumber \\
-    &+ \lambda_{\text{dtw}}^{(2)} \mathcal{L}_{\text{DTW}}(X', \mathcal{Y}^*) + \lambda_{\text{cov}} \mathcal{L}_{\text{cov}}
-\end{align}
-where $\mathcal{L}_{\text{DTW}}(X', \mathcal{Y}^*) = \frac{1}{K}\sum_{k=1}^K \text{SoftDTW}_\gamma(X', Y_k)$.
-
-Algorithm~\ref{alg:sparce} outlines the end-to-end execution of SPARCE.
-
-% ==============================================================================
-% ALGORITHM 1: SPARCE
-% ==============================================================================
 \begin{algorithm}[!t]
 \caption{SPARCE Counterfactual Generation Pipeline}
 \label{alg:sparce}
+\footnotesize
 \begin{algorithmic}[1]
-\REQUIRE Query $X \in \R^{d \times T}$, Classifier $f$, Target Class $y^*$, Target Training Pool $\mathcal{D}_{y^*}$, Smoothing $\gamma$, Iterations $I_1, I_2$.
+\REQUIRE Query $X \in \R^{d \times T}$, Classifier $f$, Target Class $y^*$, Target Pool $\mathcal{D}_{y^*}$.
 \ENSURE Counterfactual Explanation $X^* \in \R^{d \times T}$.
-\STATE Find $\text{NUN} \leftarrow \argmin_{Y \in \mathcal{D}_{y^*}} \text{DTW}(X, Y)$.
-\STATE Select $K$ target prototypes $\{Y_1, \dots, Y_K\} \subset \mathcal{D}_{y^*}$ closest to $\text{NUN}$.
-\STATE Initialize perturbation: $\Delta_0 \leftarrow (1 - \alpha_{\text{init}})(\text{NUN} - X)$.
-\STATE Initialize mask logits $\theta_M \leftarrow \ln(S / (1 - S))$ from gradient saliency.
-\STATE Set parameters $\Theta = \{\Delta, \theta_M\}$.
-\STATE \textbf{// Phase 1: Aggressive Validity Optimization}
-\STATE Initialize Adam optimizer with learning rate $\eta_1 = 0.02$.
-\FOR{iteration $i = 1$ to $I_1$}
-    \STATE $M \leftarrow \sigma(\theta_M / \tau_M)$; \quad $X' \leftarrow X + M \odot \Delta$.
-    \STATE Compute $\mathcal{L}_{\text{P1}}$ using Eq.~(14).
-    \STATE Update $\Theta \leftarrow \Theta - \eta_1 \nabla_\Theta \mathcal{L}_{\text{P1}}$.
+\STATE Find $\text{NUN} \leftarrow \argmin_{Y \in \mathcal{D}_{y^*}} \text{DTW}(X, Y)$ and extract $K$ prototypes.
+\STATE Initialize perturbation $\Delta_0 \leftarrow (1 - \alpha_{\text{init}})(\text{NUN} - X)$ and mask logits $\theta_M$.
+\FOR{iteration $i = 1$ to $I_1$ (Phase 1: Validity Focus)}
+    \STATE $X' \leftarrow X + \sigma(\theta_M / \tau_M) \odot \Delta$; update via $\nabla_\Theta \mathcal{L}_{\text{P1}}$ ($\eta_1 = 0.02$).
 \ENDFOR
-\STATE \textbf{// Phase 2: Morphological Plausibility Refinement}
-\STATE Re-initialize Adam optimizer with fine-tuning rate $\eta_2 = 0.005$.
-\FOR{iteration $i = 1$ to $I_2$}
-    \STATE $M \leftarrow \sigma(\theta_M / \tau_M)$; \quad $X' \leftarrow X + M \odot \Delta$.
-    \STATE Compute $\mathcal{L}_{\text{P2}}$ using Eq.~(15).
-    \STATE Update $\Theta \leftarrow \Theta - \eta_2 \nabla_\Theta \mathcal{L}_{\text{P2}}$.
+\FOR{iteration $i = 1$ to $I_2$ (Phase 2: Morphological Refinement)}
+    \STATE $X' \leftarrow X + \sigma(\theta_M / \tau_M) \odot \Delta$; update via $\nabla_\Theta \mathcal{L}_{\text{P2}}$ ($\eta_2 = 0.005$).
 \ENDFOR
 \RETURN $X^* = X + \sigma(\theta_M / \tau_M) \odot \Delta$.
 \end{algorithmic}
@@ -375,78 +317,48 @@ Algorithm~\ref{alg:sparce} outlines the end-to-end execution of SPARCE.
 % ==============================================================================
 \section{Experimental Setup}
 
-\subsection{Electrocardiogram Benchmark Datasets}
-To establish rigorous validation across both single-lead monitoring and full clinical vectorcardiography, we evaluate on three distinct ECG benchmarks:
-\begin{enumerate}
-    \item \textbf{UCR ECG5000} ($d=1, T=140, C=5$): Derived from the MIT-BIH Arrhythmia Database, consisting of 5,000 individual heartbeat segments partitioned into 5 classes: Normal (1), R-on-T Premature Ventricular Contraction (2), PVC (3), Supraventricular Premature Beat (4), and Unclassifiable Beat (5). The 5-class distribution provides a rigorous test for multi-class decision boundary crossing.
-    \item \textbf{UCR TwoLeadECG} ($d=1, T=82, C=2$): Single-lead bipolar ECG recordings capturing normal sinus beats versus ventricular arrhythmias, representing ambulatory wearable telemetry.
-    \item \textbf{PhysioNet PTB-XL} ($d=12, T=250, C=2$): A large, gold-standard clinical diagnostic ECG database containing 12 simultaneous physiological leads (I, II, III, aVR, aVL, aVF, V1--V6). We evaluate on the clinically critical task of discriminating Myocardial Infarction (MI) from Normal Sinus Rhythm (NORM).
-\end{enumerate}
-
-\subsection{Cross-Domain UEA Multivariate Benchmarks}
-To evaluate architectural generalizability beyond cardiac electrophysiology, we benchmark SPARCE across five diverse multivariate datasets from the UEA archive \cite{bagnall2017uea}:
+\subsection{Benchmark Datasets}
+We evaluate across three distinct ECG datasets and five cross-domain benchmarks:
 \begin{itemize}
-    \item \textbf{Epilepsy} ($d=3, T=206, C=4$): Tri-axial accelerometer EEG seizure activity tracking.
-    \item \textbf{BasicMotions} ($d=6, T=100, C=4$): 6-DOF inertial sensor kinematics (Walking, Running, Standing, Badminton).
-    \item \textbf{ERing} ($d=4, T=65, C=6$): Electric ring fingertip gesture telemetry.
-    \item \textbf{RacketSports} ($d=6, T=30, C=4$): High-acceleration IMU sensor tracking during squash and badminton strokes.
-    \item \textbf{NATOPS} ($d=24, T=51, C=6$): High-dimensional 24-channel body sensor tracking for naval aircraft handling signals.
+    \item \textbf{TwoLeadECG} ($d=1, T=82, C=2$): Single-lead ambulatory ECG capturing normal sinus beats versus ventricular ectopy.
+    \item \textbf{ECG5000} ($d=1, T=140, C=5$): MIT-BIH Arrhythmia Database derived, 5,000 heartbeats across 5 classes (Normal, R-on-T PVC, PVC, SP, UB).
+    \item \textbf{PhysioNet PTB-XL} ($d=12, T=250, C=2$): Gold-standard clinical 12-lead ECGs discriminating Myocardial Infarction (MI) from Normal Sinus Rhythm (NORM).
+    \item \textbf{UEA Cross-Domain Benchmarks}: Epilepsy ($d=3, C=4$), BasicMotions ($d=6, C=4$), ERing ($d=4, C=6$), RacketSports ($d=6, C=4$), NATOPS ($d=24, C=6$).
 \end{itemize}
 
-A detailed summary of all benchmark datasets is presented in Table~\ref{tab:dataset_properties}.
+Table~\ref{tab:dataset_properties} lists full dataset specifications.
 
-% ==============================================================================
-% TABLE 1: DATASET PROPERTIES
-% ==============================================================================
 \begin{table}[!t]
 \caption{Benchmark Dataset Dimensions and Characteristics}
 \label{tab:dataset_properties}
 \centering
-\small
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
 \begin{tabular}{lcccccc}
 \toprule
 \textbf{Dataset} & \textbf{Domain} & \textbf{Type} & $\mathbf{d}$ & $\mathbf{T}$ & $\mathbf{C}$ & $\mathbf{N_{\text{train}} / N_{\text{test}}}$ \\
 \midrule
-\multicolumn{7}{l}{\textit{Electrocardiogram Telemetry (Primary Focus)}} \\
 \textbf{TwoLeadECG} & Cardiology & Univariate & 1 & 82 & 2 & 23 / 1139 \\
 \textbf{ECG5000} & Cardiology & Univariate & 1 & 140 & 5 & 500 / 4500 \\
 \textbf{PTB-XL} & Cardiology & 12-Lead Multi & 12 & 250 & 2 & 70 / 30 \\
-\midrule
-\multicolumn{7}{l}{\textit{UEA Cross-Domain Multivariate Benchmarks}} \\
 \textbf{Epilepsy} & Neurology & Multi & 3 & 206 & 4 & 137 / 138 \\
 \textbf{BasicMotions} & Kinematics & Multi & 6 & 100 & 4 & 40 / 40 \\
 \textbf{ERing} & Wearables & Multi & 4 & 65 & 6 & 30 / 270 \\
-\textbf{RacketSports} & IMU Activity & Multi & 6 & 30 & 4 & 151 / 152 \\
+\textbf{RacketSports} & Activity IMU & Multi & 6 & 30 & 4 & 151 / 152 \\
 \textbf{NATOPS} & Telemetry & High-Dim & 24 & 51 & 6 & 180 / 180 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{Evaluation Metrics}
-Following established literature standards \cite{kostrzewa2026softdtw, wachter2017counterfactual}, performance is assessed across six quantitative axes:
+Following established literature \cite{kostrzewa2026softdtw, wachter2017counterfactual}:
 \begin{enumerate}
-    \item \textbf{Target Validity} ($Val \uparrow$): The fraction of test queries successfully mapped into the prescribed target class:
-    \begin{equation}
-        Val = \frac{1}{N}\sum_{i=1}^N \mathbf{1}\left[ f(X_i^*) = y_i^* \right]
-    \end{equation}
-    \item \textbf{Any-Flip Validity} ($Val_{\text{any}} \uparrow$): The fraction of queries that flip to any class other than the source class:
-    \begin{equation}
-        Val_{\text{any}} = \frac{1}{N}\sum_{i=1}^N \mathbf{1}\left[ f(X_i^*) \neq f(X_i) \right]
-    \end{equation}
-    \item \textbf{Proximity ($L_1, L_2 \downarrow$)}: Normalized mean absolute and Euclidean distances per dimension:
-    \begin{equation}
-        L_1 = \frac{1}{d \cdot T} \norm{X^* - X}_1, \quad L_2 = \frac{1}{d \cdot T} \norm{X^* - X}_2^2
-    \end{equation}
-    \item \textbf{DTW Morphological Plausibility ($DTW \downarrow$)}: The mean dynamic time warping distance between $X^*$ and its $k$ nearest target-class neighbors ($k=10$):
-    \begin{equation}
-        \text{DTW}_{\text{plaus}} = \frac{1}{k}\sum_{j=1}^k \text{DTW}(X^*, Y_j), \quad Y_j \in \text{k-NN}(X^*, \mathcal{D}_{y^*})
-    \end{equation}
-    Lower values verify that the counterfactual closely mirrors authentic target-class morphology.
-    \item \textbf{In-Distribution Nominality ($IF \uparrow$)}: An Isolation Forest is fitted on original training data with contamination $\alpha = 0.1$. The metric reports the percentage of counterfactuals classified as inliers ($+1$):
-    \begin{equation}
-        IF = \frac{1}{N}\sum_{i=1}^N \mathbf{1}\left[ \text{IsoForest}(X_i^*) = +1 \right]
-    \end{equation}
-    \item \textbf{Latency}: Wall-clock execution time per counterfactual sample (s/sample).
+    \item \textbf{Target Validity} ($Val \uparrow$): Fraction of queries mapped to target $y^*$.
+    \item \textbf{Any-Flip Validity} ($Val_{\text{any}} \uparrow$): Fraction flipping to any class $\neq y_{\text{orig}}$.
+    \item \textbf{Proximity ($L_1, L_2 \downarrow$)}: Normalized mean absolute and squared distances.
+    \item \textbf{DTW Plausibility ($DTW \downarrow$)}: Mean DTW distance to $k$ nearest target-class neighbors ($k=10$).
+    \item \textbf{In-Distribution Nominality ($IF \uparrow$)}: Percentage of counterfactuals classified as inliers by an Isolation Forest fitted on training data.
+    \item \textbf{Latency}: Wall-clock runtime per counterfactual sample (s/sample).
 \end{enumerate}
 
 % ==============================================================================
@@ -454,14 +366,14 @@ Following established literature standards \cite{kostrzewa2026softdtw, wachter20
 % ==============================================================================
 \section{Results \& Empirical Analysis}
 
-% ==============================================================================
-% TABLE 2: ECG BENCHMARKS RESULTS
-% ==============================================================================
+% ── TABLE 2: ECG BENCHMARKS ──────────────────────────────────────────────────
 \begin{table*}[!t]
 \caption{Comprehensive Counterfactual Benchmark Results across Univariate and Multivariate ECG Telemetry}
 \label{tab:ecg_results}
 \centering
-\small
+\footnotesize
+\setlength{\tabcolsep}{4.5pt}
+\renewcommand{\arraystretch}{0.95}
 \begin{tabular}{llccccccc}
 \toprule
 \textbf{Dataset} & \textbf{Method} & $\mathbf{Val} \uparrow$ & $\mathbf{Val_{\text{any}}} \uparrow$ & $\mathbf{L_1} \downarrow$ & $\mathbf{L_2} \downarrow$ & $\mathbf{DTW} \downarrow$ & $\mathbf{IF} \uparrow$ & \textbf{Time (s/sample)} \\
@@ -489,15 +401,12 @@ Following established literature standards \cite{kostrzewa2026softdtw, wachter20
 \end{tabular}
 \end{table*}
 
-\subsection{Univariate ECG Evaluation (TwoLeadECG and ECG5000)}
-Table~\ref{tab:ecg_results} presents the quantitative results across all evaluated ECG benchmarks.
-On \textbf{TwoLeadECG} ($T=82, d=1, C=2$), SPARCE achieves a flawless \textbf{100.0\% Target Validity}, matching DTW-CFE while significantly outperforming baseline Soft-DTW (75.0\%) and M-CELS (85.0\%). GDFO experiences catastrophic failure, reaching only 10.0\% validity as its generative density prior dominates optimization. Crucially, SPARCE achieves the lowest DTW morphological plausibility distance ($\text{DTW} = 1.4120$), outperforming Soft-DTW (1.6324), DTW-CFE (2.3496), and M-CELS (3.0265). Both SPARCE and Soft-DTW maintain a perfect 1.000 Isolation Forest nominal score, confirming that generated counterfactuals reside completely within the authentic clinical distribution.
+\subsection{Univariate ECG Evaluation}
+As documented in Table~\ref{tab:ecg_results}, on \textbf{TwoLeadECG} ($T=82, d=1$), SPARCE achieves \textbf{90.0\% Target Validity} and the global lowest morphological distortion ($\text{DTW} = \mathbf{1.5477}$ vs. 1.6324 for Soft-DTW and 2.2998 for DTW-CFE). GDFO experiences catastrophic failure (10.0\% validity), trapped by its latent GMM density prior. Both SPARCE and Soft-DTW preserve 1.000 Isolation Forest nominality.
 
-On \textbf{ECG5000} ($T=140, d=1, C=5$), the multi-class setup introduces extreme difficulty for gradient-based recourse. While classical Soft-DTW achieves only 28.0\% exact target validity (and 36.0\% any-flip validity), SPARCE substantially elevates any-flip validity to 48.0\% while achieving the \textbf{global minimum DTW distortion} across all five methods ($\text{DTW} = 12.3997$, compared to 15.7128 for Soft-DTW and 31.6271 for GDFO). DTW-CFE achieves the highest target validity (80.0\%), but at the cost of significantly degraded DTW plausibility (36.1727) and a poor Isolation Forest score (0.400). SPARCE successfully preserves 1.000 nominality on ECG5000, establishing its role as the optimal choice when clinical realism is mandatory.
+On \textbf{ECG5000} ($T=140, C=5$), the multi-class decision boundary causes gradient stalling for unconstrained Soft-DTW (28.0\% validity). SPARCE elevates any-flip validity to 48.0\% while achieving the \textbf{lowest DTW distortion in the entire benchmark} ($\text{DTW} = \mathbf{12.3997}$ vs. 15.7128 for Soft-DTW and 35.7277 for DTW-CFE) while maintaining 1.000 inlier nominality. Although DTW-CFE reaches 88.0\% validity, its Isolation Forest score drops to 0.520 with high DTW distortion (35.7277).
 
-% ==============================================================================
-% FIGURE 3: ECG WAVEFORM VISUALIZATIONS
-% ==============================================================================
+% ── FIG 3: WAVEFORMS ─────────────────────────────────────────────────────────
 \begin{figure*}[!t]
 \centering
 \begin{subfigure}[b]{0.32\textwidth}
@@ -520,24 +429,21 @@ On \textbf{ECG5000} ($T=140, d=1, C=5$), the multi-class setup introduces extrem
     \caption{PTB-XL 12-Lead ($d=12, T=250$)}
     \label{fig:ecg_wave_ptbxl}
 \end{subfigure}
-\caption{Visual counterfactual waveforms generated by SPARCE across three distinct clinical ECG regimes. (a) Single-lead arrhythmia inversion on TwoLeadECG, demonstrating smooth phase adaptation without high-frequency spikes. (b) 5-class heartbeat morphology transformation on ECG5000, where SPARCE smoothly modulates QRS amplitude and ST segment elevation to mirror target-class prototypes. (c) Real-world 12-lead clinical ECG on PTB-XL, demonstrating synchronized inter-lead vector conduction.}
+\caption{Visual counterfactual waveforms generated by SPARCE across three distinct ECG regimes. (a) Single-lead arrhythmia inversion on TwoLeadECG, demonstrating smooth phase adaptation without high-frequency spikes. (b) 5-class beat morphology transformation on ECG5000. (c) Real-world 12-lead clinical ECG on PTB-XL, demonstrating synchronized inter-lead vector conduction.}
 \label{fig:ecg_waveforms}
 \end{figure*}
 
-\subsection{12-Lead Clinical ECG Evaluation (PhysioNet PTB-XL)}
-On the high-dimensional \textbf{PTB-XL} benchmark ($d=12, T=250, C=2$), the challenge transitions from scalar waveform modulation to multi-channel electrodynamic coordination.
-As documented in Table~\ref{tab:ecg_results}, SPARCE achieves the highest Target Validity (\textbf{70.0\%}), surpassing baseline Soft-DTW (50.0\%), M-CELS (50.0\%), and DTW-CFE (60.0\%). More dramatically, SPARCE collapses the DTW plausibility distance from $1502.61$ down to \textbf{$984.32$}—a \textbf{34.5\% reduction in morphological distortion} compared to Soft-DTW. 
+\subsection{12-Lead Clinical ECG Evaluation (PTB-XL)}
+On the high-dimensional \textbf{PTB-XL} benchmark ($d=12, T=250$), multi-channel electrodynamic coordination is essential. As shown in Table~\ref{tab:ecg_results}, SPARCE achieves 60.0\% Target Validity, outperforming Soft-DTW (40.0\%). Crucially, SPARCE collapses the DTW plausibility distance from $1842.54$ down to \textbf{$956.93$}—a \textbf{48.1\% reduction in morphological distortion} compared to Soft-DTW. Furthermore, SPARCE achieves a perfect \textbf{1.000 Isolation Forest nominality}, whereas Soft-DTW, M-CELS, and DTW-CFE all drop to 0.900.
 
-M-CELS achieves rapid generation ($0.04$ s/sample), but exhibits extreme $L_2$ error ($1.0379$) and severe splice discontinuities that breach cross-lead conduction continuity. By contrast, SPARCE leverages its cross-channel covariance loss $\mathcal{L}_{\text{cov}}$ to ensure that cardiac dipoles across frontal (I, II, III, aVR, aVL, aVF) and horizontal (V1--V6) planes remain physically coherent.
-
-% ==============================================================================
-% TABLE 3: MULTIVARIATE GRAND BENCHMARK
-% ==============================================================================
+% ── TABLE 3: MULTIVARIATE GRAND BENCHMARK ───────────────────────────────────
 \begin{table*}[!t]
 \caption{Cross-Domain Benchmark Grand Summary across 5 UEA Multivariate Datasets}
 \label{tab:multivariate_grand}
 \centering
-\small
+\footnotesize
+\setlength{\tabcolsep}{5.0pt}
+\renewcommand{\arraystretch}{0.95}
 \begin{tabular}{llccccccc}
 \toprule
 \textbf{Dataset} & \textbf{Method} & $\mathbf{Val} \uparrow$ & $\mathbf{L_1} \downarrow$ & $\mathbf{L_2} \downarrow$ & $\mathbf{DTW} \downarrow$ & $\mathbf{IF} \uparrow$ & \textbf{Time (s)} & \textbf{s/sample} \\
@@ -572,21 +478,14 @@ M-CELS achieves rapid generation ($0.04$ s/sample), but exhibits extreme $L_2$ e
 
 \subsection{Cross-Domain Multivariate Generalization}
 Table~\ref{tab:multivariate_grand} summarizes results across the five UEA multivariate benchmark datasets.
-Key empirical findings include:
+Key findings:
 \begin{enumerate}
-    \item \textbf{Resolution of the Validity Collapse}: On Epilepsy ($d=3, C=4$), baseline Soft-DTW achieves an unacceptable validity of only \textbf{20.0\%}. SPARCE quadruples validity to \textbf{80.0\%}, while on BasicMotions, ERing, and RacketSports, SPARCE elevates validity from 90.0\% to \textbf{100.0\%}.
-    \item \textbf{Systematic DTW Plausibility Dominance}: Across every single multivariate dataset evaluated, SPARCE achieves the \textbf{lowest DTW distance}:
-    \begin{itemize}
-        \item BasicMotions: $22.98$ (SPARCE) vs. $28.61$ (Soft-DTW) vs. $36.24$ (M-CELS).
-        \item ERing: \textbf{$67.33$} (SPARCE) vs. $111.27$ (Soft-DTW) vs. $183.38$ (M-CELS) — a \textbf{39.5\% improvement}.
-        \item NATOPS ($d=24$): \textbf{$208.10$} (SPARCE) vs. $310.36$ (Soft-DTW) vs. $447.34$ (M-CELS) — a \textbf{32.9\% improvement}.
-    \end{itemize}
-    \item \textbf{Inlier Nominal Realism}: SPARCE achieves equal or superior Isolation Forest scores across all datasets, attaining $1.000$ on Epilepsy, BasicMotions, ERing, and RacketSports, and $0.900$ on high-dimensional NATOPS.
+    \item \textbf{Resolution of Validity Collapse}: On Epilepsy ($d=3, C=4$), baseline Soft-DTW achieves an unacceptable validity of only \textbf{20.0\%}. SPARCE quadruples validity to \textbf{80.0\%}, while on BasicMotions, ERing, and RacketSports, SPARCE elevates validity from 90.0\% to \textbf{100.0\%}.
+    \item \textbf{Systematic DTW Plausibility Dominance}: Across every single multivariate dataset evaluated, SPARCE achieves the \textbf{lowest DTW distance}: ERing ($67.33$ vs. $111.27$, 39.5\% improvement) and NATOPS ($208.10$ vs. $310.36$, 32.9\% improvement).
+    \item \textbf{Inlier Realism}: SPARCE achieves equal or superior Isolation Forest scores across all datasets, attaining $1.000$ on Epilepsy, BasicMotions, ERing, and RacketSports.
 \end{enumerate}
 
-% ==============================================================================
-% FIGURE 4: RADAR / BAR CHARTS OF PAPER METRICS
-% ==============================================================================
+% ── FIG 4: PAPER METRICS ─────────────────────────────────────────────────────
 \begin{figure*}[!t]
 \centering
 \begin{subfigure}[b]{0.32\textwidth}
@@ -609,7 +508,7 @@ Key empirical findings include:
     \caption{PTB-XL 12-Lead Metrics}
     \label{fig:metrics_ptbxl}
 \end{subfigure}
-\caption{Comparative metric bar charts for benchmark ECG telemetry across methods. Metrics are normalized: Proximity ($L_1, L_2$) and DTW distance are shown where lower is superior; Target Validity and Isolation Forest nominality are shown where higher is superior. SPARCE consistently achieves optimal DTW plausibility and nominal realism across all clinical setups.}
+\caption{Comparative metric bar charts across benchmark ECG telemetry. Proximity ($L_1, L_2$) and DTW distance are normalized (lower is superior); Target Validity and Isolation Forest nominality are normalized (higher is superior). SPARCE consistently establishes optimal DTW plausibility and nominal realism.}
 \label{fig:comparative_charts}
 \end{figure*}
 
@@ -619,22 +518,20 @@ Key empirical findings include:
 \section{Discussion \& Ablation Studies}
 
 \subsection{SPARCE Component Ablation}
-To dissect the individual contributions of each architectural innovation in SPARCE, we perform an ablation study on the multivariate Epilepsy and PTB-XL datasets (Table~\ref{tab:ablation}).
+Table~\ref{tab:ablation} reports component ablation on Epilepsy and PTB-XL:
 \begin{itemize}
-    \item \textbf{Removing Prototype Warm-Start ($\alpha_{\text{init}} = 1.0$)}: When optimizing strictly from $X$, Target Validity on Epilepsy plummets from 80.0\% down to 20.0\%, mirroring baseline Soft-DTW. This confirms that prototype initialization is the decisive mechanism preventing gradient stall.
-    \item \textbf{Removing Channel Saliency Masking ($M \equiv \mathbf{1}$)}: Removing the learnable mask forces equal perturbations across all channels, increasing $L_1$ proximity error by 27.4\% and inflating DTW distance.
-    \item \textbf{Removing the Two-Phase Curriculum (Static Loss)}: Employing a constant validity and DTW weight throughout optimization results in unstable oscillation near the decision boundary, reducing validity to 50.0\% and increasing DTW distortion.
-    \item \textbf{Removing Cross-Channel Covariance ($\lambda_{\text{cov}} = 0$)}: On 12-lead PTB-XL, omitting $\mathcal{L}_{\text{cov}}$ degrades Isolation Forest nominality from 1.000 to 0.700, as uncoordinated lead perturbations create physically contradictory cardiac vector trajectories.
+    \item \textbf{Prototype Warm-Start ($\alpha = 1.0$)}: Without warm-start, validity collapses from 80\% to 20\% on Epilepsy, proving it is the decisive mechanism preventing gradient stall.
+    \item \textbf{Channel Saliency Mask ($M \equiv \mathbf{1}$)}: Removing lead gating forces uniform perturbations, inflating $L_1$ error by 27.4\% and corrupting non-diagnostic channels.
+    \item \textbf{Two-Phase Curriculum}: Static weighting causes boundary oscillations, reducing validity to 50.0\%.
+    \item \textbf{Covariance Loss ($\lambda_{\text{cov}} = 0$)}: Omitting covariance matching on 12-lead PTB-XL degrades Isolation Forest nominality from 1.000 to 0.700 due to contradictory lead vectors.
 \end{itemize}
 
-% ==============================================================================
-% TABLE 4: ABLATION STUDY
-% ==============================================================================
 \begin{table}[!t]
 \caption{Ablation Analysis of SPARCE Core Components}
 \label{tab:ablation}
 \centering
-\small
+\scriptsize
+\setlength{\tabcolsep}{4.0pt}
 \begin{tabular}{lcccc}
 \toprule
 \textbf{Configuration} & $\mathbf{Val} \uparrow$ & $\mathbf{L_1} \downarrow$ & $\mathbf{DTW} \downarrow$ & $\mathbf{IF} \uparrow$ \\
@@ -646,92 +543,50 @@ w/o Channel Saliency Masking & 0.800 & 0.9298 & 362.15 & 0.900 \\
 w/o Two-Phase Curriculum & 0.500 & 0.6840 & 345.90 & 1.000 \\
 \midrule
 \multicolumn{5}{l}{\textit{PTB-XL 12-Lead Benchmark ($d=12, T=250, C=2$)}} \\
-\textbf{Full SPARCE Framework} & \textbf{0.700} & 0.4215 & \textbf{984.32} & \textbf{1.000} \\
+\textbf{Full SPARCE Framework} & \textbf{0.600} & 0.5066 & \textbf{956.93} & \textbf{1.000} \\
 w/o Cross-Channel Covariance & 0.600 & \textbf{0.3840} & 1120.40 & 0.700 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{Electrophysiological Plausibility Assessment}
-From a clinical standpoint, an ECG explanation must alter pathognomonic diagnostic features without corrupting normal underlying sinus rhythm. In Fig.~\ref{fig:ecg_waveforms}(a) and (b), we observe that:
-1. SPARCE alters P-QRS-T complex amplitudes continuously, smoothly elevating or depressing the ST-junction without introducing high-frequency step discontinuities.
-2. In the 12-lead PTB-XL setting (Fig.~\ref{fig:ecg_waveforms}(c)), SPARCE focuses modifications on the precordial leads (V1--V4) where myocardial infarction manifests, while leaving limb leads (I, II) intact.
-This channel-selective restraint directly mirrors clinical reality: an isolated anterior wall infarction alters chest leads while sparing peripheral limb leads.
+In clinical practice, an ECG explanation must alter pathognomonic diagnostic features without corrupting background sinus rhythm. In Fig.~\ref{fig:ecg_waveforms}, SPARCE modulates P-QRS-T amplitudes smoothly, elevating or depressing the ST-junction without introducing high-frequency step discontinuities. In 12-lead PTB-XL, SPARCE focuses modifications on precordial leads (V1--V4) where myocardial infarction manifests, while leaving limb leads (I, II) intact.
 
 \subsection{Failure Taxonomy and Boundary Conditions}
-Despite its superior performance, SPARCE exhibits specific failure modes under extreme conditions:
+SPARCE exhibits two operational boundary conditions:
 \begin{enumerate}
-    \item \textbf{Extreme Sequence Lengths ($T > 1000$)}: Because Phase 2 retains Soft-DTW alignment against $K$ prototypes, computational cost scales quadratically with $T$. For long ambulatory holter sequences ($T > 1000$), evolutionary deformation via DTW-CFE remains the faster alternative.
-    \item \textbf{Sparse Class Densities}: If the target training pool $\mathcal{D}_{y^*}$ contains fewer than $K$ samples, prototype warm-starting can over-anchor onto an outlier exemplar, producing suboptimal counterfactual recourse.
+    \item \textbf{Sequence Lengths ($T > 1000$)}: Because Phase 2 evaluates Soft-DTW against $K$ prototypes, runtime scales quadratically. For long holter sequences ($T > 1000$), evolutionary deformation via DTW-CFE provides faster generation.
+    \item \textbf{Small Prototype Pools}: If the target training pool $\mathcal{D}_{y^*}$ contains fewer than $K$ samples, prototype warm-starting can over-anchor onto an outlier exemplar.
 \end{enumerate}
 
 % ==============================================================================
 % 7. CONCLUSION
 % ==============================================================================
 \section{Conclusion}
-In this paper, we addressed the fundamental challenge of generating morphologically authentic, actionable counterfactual explanations for deep time-series models in critical electrocardiogram telemetry. We introduced \textbf{SPARCE}, a comprehensive optimization framework that resolves the validity collapse of Soft-DTW and generative density models through prototype warm-starting, learnable channel saliency gating, a two-phase curriculum schedule, and cross-channel covariance penalization.
-
-Extensive benchmarking across univariate heartbeats (UCR ECG5000, TwoLeadECG), real 12-lead clinical ECGs (PhysioNet PTB-XL), and five diverse UEA multivariate domains confirms that SPARCE achieves up to 100\% target validity, reduces DTW distortion by up to 35.8\%, preserves 1.000 Isolation Forest nominality, and strictly enforces electrophysiological lead coordination. SPARCE bridges the long-standing gap between formal optimization theory and clinical interpretability, providing a dependable foundation for transparent artificial intelligence in modern clinical cardiology.
+We presented \textbf{SPARCE}, an optimization framework that resolves the validity collapse of Soft-DTW and generative density models through prototype warm-starting, learnable channel saliency gating, a two-phase curriculum schedule, and cross-channel covariance penalization. Extensive benchmarking across univariate heartbeats (ECG5000, TwoLeadECG), real 12-lead clinical ECGs (PTB-XL), and five diverse UEA multivariate domains confirms that SPARCE achieves up to 100\% target validity, reduces DTW distortion by up to 48.1\%, preserves 1.000 Isolation Forest nominality, and strictly enforces electrophysiological lead coordination.
 
 % ==============================================================================
 % REFERENCES
 % ==============================================================================
 \begin{thebibliography}{00}
-
-\bibitem{ismail2019deep}
-H.~I. Fawaz, G.~Forestier, J.~Weber, L.~Idoumghar, and P.-A. Muller, ``Deep learning for time series classification: a review,'' \emph{Data Mining and Knowledge Discovery}, vol.~33, no.~4, pp. 917--963, 2019.
-
-\bibitem{rajpurkar2017cardiologist}
-P.~Rajpurkar, A.~Y. Hannun, M.~Haghpanahi, C.~Bourn, and A.~Y. Ng, ``Cardiologist-level arrhythmia detection with convolutional neural networks on ambulatory ECGs,'' \emph{arXiv preprint arXiv:1707.01836}, 2017.
-
-\bibitem{strodthoff2020deep}
-N.~Strodthoff, P.~Wagner, M.~Schaeffter, and W.~Samek, ``Deep learning for ECG analysis: Benchmarks and insights from PTB-XL,'' \emph{IEEE Journal of Biomedical and Health Informatics}, vol.~25, no.~5, pp. 1519--1528, 2020.
-
-\bibitem{guidotti2018survey}
-R.~Guidotti, A.~Monreale, S.~Ruggieri, F.~Turini, F.~Giannotti, and D.~Pedreschi, ``A survey of methods for explaining black box models,'' \emph{ACM Computing Surveys}, vol.~51, no.~5, pp. 1--42, 2018.
-
-\bibitem{caruana2015intelligible}
-R.~Caruana, Y.~Lou, J.~Gehrke, P.~Koch, M.~Sturm, and N.~Elhadad, ``Intelligible models for healthcare: Predicting pneumonia risk and hospital 30-day readmission,'' in \emph{Proc. ACM SIGKDD Int. Conf. Knowl. Discov. Data Min.}, 2015, pp. 1721--1730.
-
-\bibitem{selvaraju2017grad}
-R.~R. Selvaraju, M.~Cogswell, A.~Das, R.~Vedantam, D.~Parikh, and D.~Batra, ``Grad-CAM: Visual explanations from deep networks via gradient-based localization,'' in \emph{Proc. IEEE Int. Conf. Comput. Vis.}, 2017, pp. 618--626.
-
-\bibitem{lundberg2017unified}
-S.~M. Lundberg and S.-I. Lee, ``A unified approach to interpreting model predictions,'' in \emph{Adv. Neural Inf. Process. Syst.}, 2017, pp. 4765--4774.
-
-\bibitem{assaf2019explainable}
-R.~Assaf and A.~Giurgiu, ``Explainable AI for time series classification: a review, taxonomy and research directions,'' in \emph{Proc. Int. Jt. Conf. Artif. Intell.}, 2019.
-
-\bibitem{adebayo2018sanity}
-J.~Adebayo, J.~Gilmer, M.~Muelly, I.~Goodfellow, M.~Hardt, and B.~Kim, ``Sanity checks for saliency maps,'' in \emph{Adv. Neural Inf. Process. Syst.}, 2018, pp. 9505--9515.
-
-\bibitem{wachter2017counterfactual}
-S.~Wachter, B.~Mittelstadt, and C.~Russell, ``Counterfactual explanations without opening the black box: Automated decisions and the GDPR,'' \emph{Harvard Journal of Law \& Technology}, vol.~31, p. 841, 2017.
-
-\bibitem{kashou2021einthoven}
-A.~H. Kashou, A.~Kashyap, and R.~G. May, ``Einthoven triangle and vectorcardiography: Clinical principles and applications,'' \emph{StatPearls}, 2021.
-
-\bibitem{kostrzewa2026softdtw}
-D.~Kostrzewa, P.~Galus, and M.~Zięba, ``Soft-DTW Counterfactual Explanations for Time Series Classification,'' \emph{arXiv preprint arXiv:2603.08349}, 2026.
-
-\bibitem{crabb2024gdfo}
-C.~Crabbé, M.~Delaere, and M.~van~der Schaar, ``Generative Density Function Optimization for Time Series Counterfactual Recourse,'' in \emph{Proc. Int. Conf. Mach. Learn. (ICML)}, 2024.
-
-\bibitem{ates2021counterfactual}
-E.~Ates, B.~Aksar, V.~J. Leung, and A.~K. Coskun, ``Counterfactual explanations for multivariate time series,'' in \emph{Proc. Int. Conf. Pattern Recognit. (ICPR)}, 2021, pp. 1228--1235.
-
-\bibitem{cuturi2017soft}
-M.~Cuturi and M.~Blondel, ``Soft-DTW: a differentiable loss function for time-series,'' in \emph{Proc. Int. Conf. Mach. Learn. (ICML)}, 2017, pp. 894--903.
-
-\bibitem{bagnall2017uea}
-A.~Bagnall, J.~Lines, A.~Bostrom, J.~Large, and E.~Keogh, ``The UEA multivariate time series classification archive, 2018,'' \emph{arXiv preprint arXiv:1811.00075}, 2018.
-
-\bibitem{dau2019ucr}
-H.~A. Dau, E.~Keogh, K.~Kamgar, C.-C.~M. Yeh, Y.~Zhu, S.~Gharghabi, C.~A. Ratanamahatana, and et~al., ``The UCR time series classification archive,'' \emph{arXiv preprint arXiv:1810.07750}, 2019.
-
-\bibitem{goldberger2000physiobank}
-A.~L. Goldberger, L.~A. Amaral, L.~Glass, J.~M. Hausdorff, P.~C. Ivanov, R.~G. Mark, J.~E. Mietus, G.~B. Moody, C.-K. Peng, and H.~E. Stanley, ``PhysioBank, PhysioToolkit, and PhysioNet: Components of a new research resource for complex physiologic signals,'' \emph{Circulation}, vol.~101, no.~23, pp. e215--e220, 2000.
-
+\bibitem{ismail2019deep} H.~I. Fawaz et al., ``Deep learning for time series classification: a review,'' \emph{Data Min. Knowl. Discov.}, vol.~33, no.~4, pp. 917--963, 2019.
+\bibitem{rajpurkar2017cardiologist} P.~Rajpurkar et al., ``Cardiologist-level arrhythmia detection with convolutional neural networks on ambulatory ECGs,'' \emph{arXiv:1707.01836}, 2017.
+\bibitem{strodthoff2020deep} N.~Strodthoff et al., ``Deep learning for ECG analysis: Benchmarks and insights from PTB-XL,'' \emph{IEEE JBHI}, vol.~25, no.~5, pp. 1519--1528, 2020.
+\bibitem{guidotti2018survey} R.~Guidotti et al., ``A survey of methods for explaining black box models,'' \emph{ACM Comput. Surv.}, vol.~51, no.~5, pp. 1--42, 2018.
+\bibitem{caruana2015intelligible} R.~Caruana et al., ``Intelligible models for healthcare: Predicting pneumonia risk,'' in \emph{Proc. ACM SIGKDD}, 2015, pp. 1721--1730.
+\bibitem{selvaraju2017grad} R.~R. Selvaraju et al., ``Grad-CAM: Visual explanations from deep networks,'' in \emph{Proc. IEEE ICCV}, 2017, pp. 618--626.
+\bibitem{lundberg2017unified} S.~M. Lundberg and S.-I. Lee, ``A unified approach to interpreting model predictions,'' in \emph{NeurIPS}, 2017, pp. 4765--4774.
+\bibitem{assaf2019explainable} R.~Assaf and A.~Giurgiu, ``Explainable AI for time series classification,'' in \emph{Proc. IJCAI}, 2019.
+\bibitem{adebayo2018sanity} J.~Adebayo et al., ``Sanity checks for saliency maps,'' in \emph{NeurIPS}, 2018, pp. 9505--9515.
+\bibitem{wachter2017counterfactual} S.~Wachter et al., ``Counterfactual explanations without opening the black box,'' \emph{Harvard J. Law Tech.}, vol.~31, p. 841, 2017.
+\bibitem{kashou2021einthoven} A.~H. Kashou et al., ``Einthoven triangle and vectorcardiography: Clinical principles,'' \emph{StatPearls}, 2021.
+\bibitem{kostrzewa2026softdtw} D.~Kostrzewa et al., ``Soft-DTW Counterfactual Explanations for Time Series Classification,'' \emph{arXiv:2603.08349}, 2026.
+\bibitem{crabb2024gdfo} C.~Crabbé et al., ``Generative Density Function Optimization for Time Series Counterfactual Recourse,'' in \emph{Proc. ICML}, 2024.
+\bibitem{ates2021counterfactual} E.~Ates et al., ``Counterfactual explanations for multivariate time series,'' in \emph{Proc. ICPR}, 2021, pp. 1228--1235.
+\bibitem{cuturi2017soft} M.~Cuturi and M.~Blondel, ``Soft-DTW: a differentiable loss function for time-series,'' in \emph{Proc. ICML}, 2017, pp. 894--903.
+\bibitem{bagnall2017uea} A.~Bagnall et al., ``The UEA multivariate time series classification archive, 2018,'' \emph{arXiv:1811.00075}, 2018.
+\bibitem{dau2019ucr} H.~A. Dau et al., ``The UCR time series classification archive,'' \emph{arXiv:1810.07750}, 2019.
+\bibitem{goldberger2000physiobank} A.~L. Goldberger et al., ``PhysioBank, PhysioToolkit, and PhysioNet,'' \emph{Circulation}, vol.~101, no.~23, pp. e215--e220, 2000.
 \end{thebibliography}
 
 \end{document}
