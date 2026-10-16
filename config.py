@@ -29,6 +29,7 @@ for d in [DATA_DIR, RESULTS_DIR, MODELS_DIR, FIGURES_DIR]:
 UNIVARIATE_DATASETS = [
     "CBF",           # Note: may need re-download if corrupted (aeon cache issue)
     "TwoLeadECG",
+    "ECG5000",       # Univariate ECG: d=1, T=140, C=5, 500/4500 train/test
     "GunPoint",
     "Earthquakes",
     "Coffee",
@@ -67,6 +68,7 @@ MEDICAL_DATASETS = [
 # (run_experiments.py handles per-dataset errors gracefully)
 CONFIRMED_DATASETS = [
     "TwoLeadECG",
+    "ECG5000",
     "GunPoint",
     "Earthquakes",
     "Coffee",
